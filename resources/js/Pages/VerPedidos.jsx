@@ -67,7 +67,7 @@ export default function VerPedidos() {
                 </div>
 
                 {/* TABLA */}
-                <div className="bg-[#1a1a1a] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+                <div className="bg-[#1a1a1a] border border-white/5 overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
