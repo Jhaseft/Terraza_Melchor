@@ -62,4 +62,12 @@ class OrderController extends Controller
         return response()->json($order); // Esto lo usaremos para el Modal de detalle
     }
 
+    public function ingresos()
+    {
+        $orders = \App\Models\Order::all();
+
+        return Inertia::render('Ingresos', [
+            'orders' => $orders
+        ]);
+    }
 }

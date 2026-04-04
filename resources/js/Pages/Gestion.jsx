@@ -6,11 +6,9 @@ export default function Gestion() {
     const menuItems = [
         { label: "Registrar Pedidos", href: route('pedidos.create'), count: null },
         { label: "Ver Pedidos", href: route('VerPedidos.create'), count: null },
-        { label: "Platos x Pedido", href: route('PlatosxPedidos.create'), count: null },
-        { label: "Compras Otros Productos", href: "#", count: null },
+        { label: "Ingresos", href: route('ingresos.index'), count: null },
+        { label: "Egresos", href: route('egresos.index'), count: null },
         { label: "Compras Ingredientes", href: "#", count: null },
-        { label: "Informe", href: "#", count: null },
-        { label: "Inventario", sublabel: "Historial de Compras", href: "#", count: null },
     ];
 
     return (

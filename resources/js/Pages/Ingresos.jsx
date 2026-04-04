@@ -2,11 +2,41 @@ import { Link, Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export default function PlatosXPedido() {
+export default function Ingresos({ orders = [] }) { // Recibimos las órdenes de la DB
+    console.log("Órdenes recibidas:", orders);
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
+
+    // --- LÓGICA DE FILTRADO Y CÁLCULOS ---
+
+    // 1. Filtrar pedidos del DÍA seleccionado
+    const pedidosDia = orders.filter(order => 
+        order.created_at && order.created_at.startsWith(fechaSeleccionada)
+    );
+
+    // 2. Filtrar pedidos del MES seleccionado (YYYY-MM)
+    const mesActual = fechaSeleccionada.substring(0, 7);
+    const pedidosMes = orders.filter(order => 
+        order.created_at && order.created_at.startsWith(mesActual)
+    );
+
+    // 3. Cálculos de Platos (Suma de la columna no_platos)
+    const totalPlatosDia = pedidosDia.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
+    const totalPlatosMes = pedidosMes.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
+
+    // 4. Cálculos de Pedidos (Conteo de filas)
+    const totalPedidosDia = pedidosDia.length;
+    const totalPedidosMes = pedidosMes.length;
+
+    // --- HELPERS DE FECHA ---
     const formatearFechaLarga = (fecha) => {
         const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         return new Date(fecha + "T00:00:00").toLocaleDateString('es-ES', opciones).toUpperCase();
+    };
+
+    const formatearFechaCorta = (fecha) => {
+        if (!fecha) return "";
+        const [year, month, day] = fecha.split('-');
+        return `${day}/${month}/${year}`;
     };
 
     return (
@@ -38,9 +68,9 @@ export default function PlatosXPedido() {
                     Registro de Platos <br /> por Pedido
                 </h2>
 
-                {/* SELECTOR DE FECHA  */}
-                <div className="space-y-3 mb-6">
-                    <div className="bg-[#1a1a1a] py-2 px-4 rounded-xl border border-white/10 inline-block">
+                {/* SELECTOR DE FECHA */}
+                <div className="space-y-3 mb-6 flex flex-col items-center">
+                    <div className="bg-[#1a1a1a] py-2 px-4 rounded-xl border border-white/10 inline-block text-center">
                         <span className="text-[10px] text-[#96be8c] font-black uppercase tracking-[0.2em]">
                             Consultando Día:
                         </span>
@@ -49,18 +79,26 @@ export default function PlatosXPedido() {
                         </p>
                     </div>
 
-                    <div className="relative max-w-[200px] mx-auto">
+                    <div className="relative w-full max-w-[200px] h-[38px] group">
                         <input 
                             type="date" 
-                            className="w-full bg-[#4a4a55] border-none rounded-lg p-2 text-white text-xs text-center focus:ring-2 focus:ring-[#96be8c] cursor-pointer"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                             value={fechaSeleccionada}
                             onChange={e => setFechaSeleccionada(e.target.value)}
+                            onClick={(e) => e.currentTarget.showPicker?.()}
                         />
+                        <div className="absolute inset-0 bg-[#4a4a55] rounded-lg px-4 flex items-center justify-between z-10 pointer-events-none group-hover:bg-[#555560] transition-colors shadow-lg">
+                            <span className="flex-1 text-center text-white text-xs font-bold tracking-tighter">
+                                {formatearFechaCorta(fechaSeleccionada)}
+                            </span>
+                            <span className="text-white opacity-60 text-sm">📅</span>
+                        </div>
                     </div>
                 </div>
 
+                {/* MENSAJE DE ESTADO */}
                 <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-6">
-                    Sin registros en este día
+                    {totalPedidosDia === 0 ? "Sin registros en este día" : `Mostrando ${totalPedidosDia} registros`}
                 </p>
 
                 {/* TABLA DE ESTADÍSTICAS */}
@@ -68,29 +106,30 @@ export default function PlatosXPedido() {
                     {/* Encabezados */}
                     <div className="grid grid-cols-3 border-b-2 border-white bg-white/5">
                         <div className="p-2 border-r-2 border-white">Cantidad</div>
-                        <div className="p-2 border-r-2 border-white">Del Día</div>
+                        <div className="p-2 border-r-2 border-white text-[#96be8c]">Del Día</div>
                         <div className="p-2">Del Mes</div>
                     </div>
                     
-                    {/* Espacio vacío para datos */}
-                    <div className="grid grid-cols-3 h-16 border-b-2 border-white">
-                        <div className="border-r-2 border-white"></div>
-                        <div className="border-r-2 border-white"></div>
-                        <div></div>
-                    </div>
-
                     {/* Fila Total Platos */}
                     <div className="grid grid-cols-3 border-b-2 border-white bg-white/5 items-center">
-                        <div className="p-2 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] opacity-60">de platos</span></div>
-                        <div className="p-2 border-r-2 border-white text-lg">0</div>
-                        <div className="p-2 text-lg">0</div>
+                        <div className="p-3 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] text-gray-400">de platos</span></div>
+                        <div className="p-2 border-r-2 border-white text-2xl font-black text-[#96be8c]">
+                            {totalPlatosDia}
+                        </div>
+                        <div className="p-2 text-2xl font-black text-white/50">
+                            {totalPlatosMes}
+                        </div>
                     </div>
 
                     {/* Fila Total Pedidos */}
                     <div className="grid grid-cols-3 items-center">
-                        <div className="p-2 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] opacity-60">de pedidos</span></div>
-                        <div className="p-2 border-r-2 border-white text-lg">0</div>
-                        <div className="p-2 text-lg">0</div>
+                        <div className="p-3 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] text-gray-400">de pedidos</span></div>
+                        <div className="p-2 border-r-2 border-white text-2xl font-black text-[#96be8c]">
+                            {totalPedidosDia}
+                        </div>
+                        <div className="p-2 text-2xl font-black text-white/50">
+                            {totalPedidosMes}
+                        </div>
                     </div>
                 </div>
             </motion.div>

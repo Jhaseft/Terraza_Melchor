@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminCategoryProductsController;
 use App\Http\Controllers\AdminProductVariantsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\VentasController;
 use App\Http\Controllers\OrderController;
@@ -36,12 +37,16 @@ Route::get('/registrar-pedido', function () {
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 
 //desde el home ir para platosXpedidos
-Route::get('/platosxpedidos', function () {
-    return Inertia::render('PlatosxPedidos'); 
-})->name('PlatosxPedidos.create');
+Route::get('/platos-pedidos', [OrderController::class, 'ingresos'])->name('ingresos.index');
 
 //desde el home ir para verPedidos
 Route::get('/ver-pedidos', [OrderController::class, 'index'])->name('VerPedidos.create');
+
+//desde el home ir para egresos
+Route::get('/egresos', [ExpenseController::class, 'index'])->name('egresos.index');
+Route::post('/egresos', [ExpenseController::class, 'store'])->name('egresos.store');
+
+
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');
