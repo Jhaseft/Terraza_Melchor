@@ -2,7 +2,7 @@ import { Link, Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export default function VerPedidos() {
+export default function VerPedidos({ pedidos }) {
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
 
     const formatearFechaCorta = (fecha) => {
@@ -10,104 +10,142 @@ export default function VerPedidos() {
         return `${day}/${month}/${year}`;
     };
 
-    const columnas = ["N°", "Cliente", "Platos", "Total", "Día", "Fecha"];
+    const pedidosSeguros = pedidos || [];
+    
+    // Columnas actualizadas según tu pedido
+    const columnas = ["N°", "Cliente", "Platos", "QR?", "Observaciones"];
+
+    const pedidosFiltrados = pedidosSeguros.filter(p => 
+        p.created_at && p.created_at.startsWith(fechaSeleccionada)
+    );
+
+    const totalPlatosDia = pedidosFiltrados.reduce((acc, p) => 
+        acc + (parseInt(p.no_platos) || 0), 0
+    );
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans p-4 flex justify-center">
-            <Head title="Informe por Cobrar" />
+            <Head title="Informe de Pedidos" />
 
-            {/* Limitamos el ancho a 450px para que no se vea "gordo" en PC */}
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="w-full max-w-[450px] pb-32" 
+                className="w-full max-w-[500px] pb-32" 
             >
                 {/* HEADER */}
                 <div className="flex items-center gap-4 mb-8">
                     <Link href={route('home')} className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors">
                         <span className="text-xl">←</span>
-                        <span className="text-[10px] font-black uppercase">Menú</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Menú</span>
                     </Link>
                     <h1 className="text-sm font-black uppercase tracking-widest border-l border-white/20 pl-4">
-                        Informe por Cobrar ( 0 )
+                        Pedidos del Día
                     </h1>
                 </div>
 
-                {/* BOTÓN CALENDARIO - CLIC EN TODO EL BOTÓN */}
+                {/* SELECTOR DE FECHA */}
                 <div className="flex justify-center mb-8">
-                    {/* Contenedor relativo que define el área de clic */}
-                    <div className="relative w-full h-[60px]"> 
+                    <div className="relative w-full h-[60px] group"> 
                         
-                        {/* EL TRUCO: El input ahora tiene w-full y h-full, y z-20 para estar por encima de todo */}
                         <input 
                             type="date" 
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                             value={fechaSeleccionada}
                             onChange={(e) => setFechaSeleccionada(e.target.value)}
+                            onClick={(e) => {
+                                const picker = e.currentTarget;
+                                if ('showPicker' in picker) {
+                                    picker.showPicker();
+                                }
+                            }}
                         />
 
-                        {/* El diseño visual (debajo del input, z-10) */}
-                        <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-between px-6 py-4 rounded-[2rem] border border-white/5 shadow-2xl z-10 pointer-events-none">
+                        <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-between px-6 py-4 rounded-2xl border border-white/10 shadow-2xl z-10 pointer-events-none group-active:scale-[0.98] transition-transform">
                             <span className="text-2xl">📅</span>
-                            <span className="text-lg font-bold tracking-tight text-white">
+                            <span className="text-lg font-bold tracking-tight text-white italic">
                                 {formatearFechaCorta(fechaSeleccionada)}
                             </span>
-                            <span className="text-gray-500 text-[10px]">▼</span>
                         </div>
                     </div>
                 </div>
-                {/* FILTROS SECUNDARIOS */}
-                <div className="flex gap-3 mb-8">
-                    <button className="flex-[2] bg-[#1a1a1a] p-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase flex items-center justify-center gap-2">
-                        <span className="opacity-50 text-base">👤</span> TODOS LOS CLIENTES
-                    </button>
-                    <button className="flex-1 bg-[#1a1a1a] p-4 rounded-2xl border border-white/5 text-[10px] font-black uppercase flex items-center justify-center gap-2">
-                        TODO <span className="text-[8px] opacity-40">▼</span>
-                    </button>
-                </div>
 
-                {/* TABLA */}
-                <div className="bg-[#1a1a1a] border border-white/5 overflow-hidden shadow-2xl">
+                {/* TABLA DE PEDIDOS */}
+                <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#ff6b00]">
                                     {columnas.map((col, i) => (
-                                        <th key={i} className="p-4 text-[9px] font-black uppercase text-white text-center border-r border-black/10 last:border-0">
+                                        <th key={i} className="p-3 text-[9px] font-black uppercase text-black text-center border-r border-black/40 last:border-0">
                                             {col}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr className="text-center">
-                                    <td colSpan={6} className="p-20 text-[11px] text-gray-400 italic leading-relaxed">
-                                        No hay pedidos registrados para el <br /> 
-                                        <span className="text-white not-italic font-bold">{formatearFechaCorta(fechaSeleccionada)}</span>
-                                    </td>
-                                </tr>
+                                {pedidosFiltrados.length > 0 ? (
+                                    pedidosFiltrados.map((pedido, index) => (
+                                        <tr key={pedido.id} className="border-b border-white/5 text-[10px] hover:bg-white/5 transition-colors ">
+                                            {/* columna N */}
+                                            <td className="p-3 text-center font-bold text-white border-r border-white/40">
+                                                {index + 1}
+                                            </td>
+
+                                            {/* columna nombre cliente */}
+                                            <td className="p-3 uppercase font-bold text-white truncate max-w-[120px] border-r border-white/40">
+                                                {pedido.nombre_cliente}
+                                            </td>
+
+                                            {/* columna platos */}
+                                            <td className="p-3 text-center font-bold text-white border-r border-white/40">
+                                                {pedido.no_platos}
+                                            </td>
+
+                                            {/* columna QR */}
+                                            <td className="p-3 text-center border-r border-white/40">
+                                                {pedido.qr ? (
+                                                    <span className="text-white rounded text-[8px] font-bold">SÍ</span>
+                                                ) : (
+                                                    <span className="text-white rounded text-[8px] font-bold">NO</span>
+                                                )}
+                                            </td>
+
+                                            {/* columna observaciones */}
+                                            <td className="p-3 text-white font-bold">
+                                                {pedido.observaciones || "---"}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr className="text-center">
+                                        <td colSpan={5} className="p-20 text-[11px] text-gray-400 italic leading-relaxed">
+                                            No hay registros para el <br /> 
+                                            <span className="text-white not-italic font-bold">{formatearFechaCorta(fechaSeleccionada)}</span>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </motion.div>
 
-            {/* TOTALES FIJOS (Ajustados al mismo ancho que el contenido) */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#2c2c34]/90 backdrop-blur-xl border-t border-white/5 p-6 flex justify-center">
+            {/* TOTALES INFERIORES */}
+            <div className="fixed bottom-0 left-0 right-0 bg-[#2c2c34]/95 backdrop-blur-md border-t border-white/5 p-6 flex justify-center z-50">
                 <div className="w-full max-w-[450px]">
-                    <p className="text-[9px] font-black uppercase text-gray-500 mb-4 tracking-widest">Ventas Totales</p>
-                    <div className="grid grid-cols-4 gap-3">
-                        {[
-                            { label: "Platos", val: "0", color: "text-white" },
-                            { label: "Pagado", val: "0", color: "text-[#96be8c]" },
-                            { label: "Deuda", val: "0", color: "text-red-400" },
-                            { label: "Total", val: "0", color: "text-white" }
-                        ].map((item, i) => (
-                            <div key={i} className="bg-black/30 rounded-2xl p-3 border border-white/5 text-center">
-                                <p className="text-[7px] font-black uppercase text-gray-500 mb-1">{item.label}</p>
-                                <p className={`text-lg font-black italic ${item.color}`}>{item.val}</p>
-                            </div>
-                        ))}
+                    <div className="bg-black/40 rounded-3xl p-4 border border-white/10 flex justify-between items-center px-8 shadow-2xl">
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] mb-1">Total Platos</p>
+                            <p className="text-3xl font-black italic text-[#96be8c] leading-none">
+                                {totalPlatosDia}
+                            </p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] mb-1">Pedidos</p>
+                            <p className="text-3xl font-black italic text-white leading-none">
+                                {pedidosFiltrados.length}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

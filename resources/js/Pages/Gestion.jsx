@@ -5,7 +5,7 @@ export default function Gestion() {
     // Definición de los botones para facilitar el mantenimiento
     const menuItems = [
         { label: "Registrar Pedidos", href: route('pedidos.create'), count: null },
-        { label: "Ver Pedidos", sublabel: "Por Cobrar", href: route('VerPedidos.create'), count: 0 },
+        { label: "Ver Pedidos", href: route('VerPedidos.create'), count: null },
         { label: "Platos x Pedido", href: route('PlatosxPedidos.create'), count: null },
         { label: "Compras Otros Productos", href: "#", count: null },
         { label: "Compras Ingredientes", href: "#", count: null },

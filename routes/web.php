@@ -32,15 +32,16 @@ Route::get('/registrar-pedido', function () {
     return Inertia::render('RegistrarPedido'); 
 })->name('pedidos.create');
 
+//registar un pedido
+Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+
 //desde el home ir para platosXpedidos
 Route::get('/platosxpedidos', function () {
     return Inertia::render('PlatosxPedidos'); 
 })->name('PlatosxPedidos.create');
 
 //desde el home ir para verPedidos
-Route::get('/ver-pedidos', function () {
-    return Inertia::render('VerPedidos'); 
-})->name('VerPedidos.create');
+Route::get('/ver-pedidos', [OrderController::class, 'index'])->name('VerPedidos.create');
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');
@@ -87,24 +88,7 @@ Route::prefix('admin')->group(function () {
         //cambiar el perfil
         Route::put('/configuraciones/perfil', [AccountController::class, 'updateProfile'])->name('profile.update');
 
-        // Listado principal
-        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-        
-        // Ver detalle (vía API para el Modal)
-        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-        
-        // Actualizar estado
-        Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
-        
-        // Eliminar orden
-        Route::delete('admin/orders/{order}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
-        // Eliminar una orden personalizada
-        Route::delete('/custom-orders/{customOrder}', [CustomOrderController::class, 'destroy'])->name('admin.orders.destroyCustom');
-        //para ver y editar los pedidos personalizados
-        Route::patch('/custom-orders/{customOrder}', [CustomOrderController::class, 'updateStatus'])->name('admin.orders.updateCustomStatus');
-        
-        // Eliminar una orden personalizada
-
+    
         //Route::get('/catalogo', [CategoryController::class, 'index'])->name('admin.catalogo');
         //para poder guardar los cambios de modo editar
         //Route::put('/categories/{id}', [CategoryController::class, 'update'])->name('categories.update');
@@ -190,27 +174,6 @@ Route::prefix('admin')->group(function () {
         Route::delete('/variants/{variant}', [AdminProductVariantsController::class, 'destroy'])
             ->name('admin.variants.destroy');
 
-        
-
-        // Rutas para los otros pasos de tu plan
-        Route::get('/ordenes', [OrderController::class, 'index'])->name('admin.orders.index');
-
-
-
-
-
-
-
-
-
-
-        //mostar estados y metodos de pago
-        Route::get('/orders/meta', [OrderController::class, 'meta']);
-        // Ordenes
-        Route::get('/orders', [OrderController::class, 'index']);
-        Route::get('/orders/{order}', [OrderController::class, 'show']);
-        Route::put('/orders/{order}', [OrderController::class, 'update']);
-        Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
 
         // Reportes de ventas
 

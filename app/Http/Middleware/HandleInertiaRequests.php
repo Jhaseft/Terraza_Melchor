@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Account; // Importamos el modelo de tu tabla BNB
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -20,20 +19,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $account = \DB::table('accounts')->first();
         return array_merge(parent::share($request), [
-            // DATOS GLOBALES DE LA APP (
-            'app_config' => [
-                'account' => Account::first(), // Trae logo, qr, bnb y whatsapp
-            ],
-            // Datos del usuario 
+            // Por ahora, solo compartimos el usuario si existe (aunque no lo uses)
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Mensajes flash para notificaciones futuras
             'flash' => [
+                'message' => $request->session()->get('message'),
                 'order_id' => $request->session()->get('flash.order_id'),
             ],
-            'appLogo' => $account ? $account->logo_path : null,
+            // Si necesitas un logo estático por ahora, puedes poner la ruta aquí
+            'appLogo' => '/logo-terraza.png', 
         ]);
     }
 }
