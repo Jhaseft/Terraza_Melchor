@@ -146,9 +146,10 @@ class RecipeController extends Controller
 
 
 
-    public function destroy(Recipe $recipe)
+    public function destroy($id)
     {
         set_time_limit(120);
+        $recipe = Recipe::findOrFail($id);
         try {
             DB::transaction(function () use ($recipe) {
                 if ($recipe->foto_principal) {

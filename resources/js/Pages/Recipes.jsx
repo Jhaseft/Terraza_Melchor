@@ -1,37 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react'; // Importamos router para acciones directas
+import { Head, Link, router } from '@inertiajs/react'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Trash2 } from 'lucide-react'; // Importamos los iconos
+import { Pencil, Trash2 } from 'lucide-react'; 
 import FormReceta from '@/Components/FormReceta';
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
     const [tabActiva, setTabActiva] = useState('ver');
-
     const [listaRecetas, setListaRecetas] = useState(recipes);
+    const [recetaAEditar, setRecetaAEditar] = useState(null);
 
+    // Sincronizar cuando Inertia actualice las props desde el servidor
     useEffect(() => {
         setListaRecetas(recipes);
     }, [recipes]);
 
     const eliminarReceta = (id, nombre) => {
+        if (!id) {
+            console.error("No se pudo obtener el ID de la receta");
+            return;
+        }
+
         if (confirm(`¿Estás seguro de eliminar "${nombre}"?`)) {
-            
-            // PRIMERO: Lo quitamos de la vista inmediatamente (Optimistic UI)
+            // ELIMINACIÓN OPTIMISTA: Borramos de la vista inmediatamente
             setListaRecetas(prev => prev.filter(r => r.id !== id));
 
-            // SEGUNDO: Mandamos la orden al servidor
-            router.delete(route('recipes.destroy', id), {
+            // ENVIAMOS AL SERVIDOR (Usando POST con spoofing de DELETE para máxima compatibilidad)
+            router.post(`/recipes/${id}`, {
+                _method: 'delete',
+            }, {
                 preserveScroll: true,
-                onError: () => {
-                    // Si el servidor falla de verdad, lo devolvemos a la lista
-                    alert("No se pudo eliminar en el servidor. Refrescando...");
-                    router.visit(route('recipes.index')); 
+                onSuccess: () => {
+                    console.log("Eliminado correctamente del servidor");
+                },
+                onError: (err) => {
+                    console.error("Error al eliminar:", err);
+                    setListaRecetas(recipes); // Revertimos si falla
+                    alert("No se pudo eliminar en el servidor.");
                 }
             });
         }
     };
-
-    const [recetaAEditar, setRecetaAEditar] = useState(null);
 
     const prepararEdicion = (recipe) => {
         setRecetaAEditar(recipe); 
@@ -48,7 +56,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                 
                 <div className="flex border-b border-white/10">
                     <button 
-                        onClick={() => setTabActiva('ver')}
+                        onClick={() => { setTabActiva('ver'); setRecetaAEditar(null); }}
                         className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${tabActiva === 'ver' ? 'border-b-2 border-[#ff6b00] text-white' : 'text-gray-500'}`}
                     >
                         Ver Recetas
@@ -57,7 +65,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                         onClick={() => setTabActiva('agregar')}
                         className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${tabActiva === 'agregar' ? 'border-b-2 border-[#ff6b00] text-white' : 'text-gray-500'}`}
                     >
-                        Agregar Nueva
+                        {recetaAEditar ? 'Editando Receta' : 'Agregar Nueva'}
                     </button>
                 </div>
             </div>
@@ -70,14 +78,13 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex flex-col gap-4 max-w-4xl mx-auto" // Limito el ancho en desktop
+                            className="flex flex-col gap-4 max-w-4xl mx-auto"
                         >
                             {listaRecetas.length > 0 ? listaRecetas.map((recipe) => (
                                 <div 
                                     key={recipe.id} 
                                     className="group flex items-center gap-4 bg-[#3a3a44] p-3 rounded-2xl border border-white/5 hover:border-white/10 transition-all"
                                 >
-                                    {/* Link envolviendo la Info e Imagen */}
                                     <Link 
                                         href={route('recipes.show', recipe.id)}
                                         className="flex flex-1 items-center gap-4 active:scale-[0.98] transition-transform"
@@ -103,16 +110,17 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                                         </div>
                                     </Link>
 
-                                    {/* ACCIONES (Lápiz y Basurero) */}
                                     <div className="flex gap-2 pr-2">
                                         <button 
-                                            onClick={() => prepararEdicion(recipe)}
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); prepararEdicion(recipe); }}
                                             className="p-3 bg-white/5 hover:bg-[#ff6b00]/20 text-gray-400 hover:text-[#ff6b00] rounded-xl transition-all"
                                         >
                                             <Pencil size={16} />
                                         </button>
                                         <button 
-                                            onClick={() => eliminarReceta(recipe.id, recipe.nombre)}
+                                            type="button"
+                                            onClick={(e) => { e.preventDefault(); eliminarReceta(recipe.id, recipe.nombre); }}
                                             className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
                                         >
                                             <Trash2 size={16} />
@@ -135,14 +143,17 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                             <FormReceta 
                                 catalogo={catalogo_ingredientes} 
                                 categoriasExistentes={categorias_existentes} 
-                                onSuccessSave={() => setTabActiva('ver')}
+                                recetaEditando={recetaAEditar}
+                                onSuccessSave={() => {
+                                    setTabActiva('ver');
+                                    setRecetaAEditar(null);
+                                }}
                             />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* BOTÓN VOLVER */}
             <Link 
                 href={route('home')}
                 className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#ff6b00] transition-colors z-50"

@@ -47,10 +47,16 @@ Route::get('/ver-pedidos', [OrderController::class, 'index'])->name('VerPedidos.
 Route::get('/egresos', [ExpenseController::class, 'index'])->name('egresos.index');
 Route::post('/egresos', [ExpenseController::class, 'store'])->name('egresos.store');
 
+
+
 //acceder desde home a ficha tecnica
-Route::resource('recipes', RecipeController::class);
-Route::get('/recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
-Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
+Route::delete('/recipes/{id}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
+
+Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
+Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
+Route::get('/recipes/{id}', [RecipeController::class, 'show'])->name('recipes.show');
+Route::get('/recipes/{id}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
+Route::post('/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
 
 
 //para clientes
