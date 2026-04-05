@@ -7,6 +7,8 @@ use App\Models\Ingredient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
 
 class RecipeController extends Controller
 {
@@ -15,7 +17,8 @@ class RecipeController extends Controller
     {
         return Inertia::render('Recipes', [ 
             'recipes' => Recipe::with('ingredients')->get(),
-            'catalogo_ingredientes' => Ingredient::all()
+            'catalogo_ingredientes' => Ingredient::all(),
+            'categorias_existentes' => Recipe::distinct()->pluck('categoria')
         ]);
     }
 
@@ -27,52 +30,85 @@ class RecipeController extends Controller
         ]);
     }
 
-    // EL MOTOR: Guardar Receta Completa
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        set_time_limit(300);
+        $request->validate([
             'nombre' => 'required|string|max:255',
             'categoria' => 'required|string',
-            'ingredientes' => 'required|array|min:1', // Debe tener al menos 1 ingrediente
-            'ingredientes.*.id' => 'required|exists:ingredients,id',
-            'ingredientes.*.peso' => 'nullable|numeric',
-            'ingredientes.*.unidad' => 'nullable|string',
+            'foto_principal' => 'nullable|image|max:2048',
+            'ingredientes' => 'required|array|min:1',
             'pasos' => 'required|array|min:1',
-            'pasos.*.descripcion' => 'required|string',
+            'pasos.*.foto_paso' => 'nullable|image|max:2048',
         ]);
 
-        try {
-            DB::beginTransaction();
-
-            // 1. Crear la Cabecera de la Receta
+        //dd($request->allFiles());
+        DB::transaction(function () use ($request) {
+            
+            $urlPrincipal = null;
+            if ($request->hasFile('foto_principal')) {
+                $file = $request->file('foto_principal');
+                $result = cloudinary()->uploadApi()->upload(
+                    $file->getRealPath(),
+                    [
+                        'folder' => 'terraza/recetas',
+                        'transformation' => [
+                            'width' => 200, 'height' => 200, 'crop' => 'fill', 'format' => 'webp'
+                        ]
+                    ]
+                );
+                //$urlPrincipal = $result['secure_url'] ?? null;
+                $urlPrincipal = "https://via.placeholder.com/200";
+            }
             $recipe = Recipe::create([
-                'nombre' => $validated['nombre'],
-                'categoria' => $validated['categoria'],
+                'nombre' => strtoupper($request->nombre),
+                'categoria' => strtoupper($request->categoria),
+                'foto_principal' => $urlPrincipal,
             ]);
 
-            // 2. Sincronizar Ingredientes (Tabla Intermedia)
-            foreach ($validated['ingredientes'] as $item) {
-                $recipe->ingredients()->attach($item['id'], [
-                    'peso' => $item['peso'],
-                    'unidad' => $item['unidad'] ?? 'gr',
+            foreach ($request->ingredientes as $ing) {
+                $ingredienteDB = Ingredient::firstOrCreate(
+                    ['nombre' => strtoupper($ing['nombre'])]
+                );
+
+                $recipe->ingredients()->attach($ingredienteDB->id, [
+                    'peso' => $ing['peso'],
+                    'unidad' => $ing['unidad']
                 ]);
             }
 
-            // 3. Crear los Pasos
-            foreach ($validated['pasos'] as $index => $paso) {
+            foreach ($request->pasos as $index => $paso) {
+                $urlPaso = null;
+
+                // FORMA CORRECTA DE DETECTAR ARCHIVOS EN ARRAYS CON INERTIA
+                if ($request->hasFile("pasos.{$index}.foto_paso")) {
+                    
+                    $filePaso = $request->file("pasos.{$index}.foto_paso");
+                    
+                    $resultPaso = cloudinary()->uploadApi()->upload(
+                        $filePaso->getRealPath(),
+                        [
+                            'folder' => 'terraza/pasos',
+                            'transformation' => [
+                                'width' => 200, 
+                                'height' => 200, 
+                                'crop' => 'fill', 
+                                'format' => 'webp'
+                            ]
+                        ]
+                    );
+                    //$urlPaso = $resultPaso['secure_url'];
+                    $urlPaso = "https://via.placeholder.com/200";
+                }
+
                 $recipe->steps()->create([
                     'numero_paso' => $index + 1,
                     'descripcion' => $paso['descripcion'],
+                    'foto_paso'   => $urlPaso, 
                 ]);
             }
-
-            DB::commit();
-            return redirect()->route('recipes.index')->with('message', 'Ficha técnica creada con éxito');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Error al guardar: ' . $e->getMessage()]);
-        }
+        });
+        return redirect()->route('recipes.index');
     }
 
     public function show($id)
@@ -84,5 +120,69 @@ class RecipeController extends Controller
         return Inertia::render('RecipeShow', [
             'recipe' => $recipe
         ]);
+    }
+
+    public function storeIngredient(Request $request) {
+        $validated = $request->validate([
+            'nombre' => 'required|string|unique:ingredients,nombre'
+        ]);
+
+        $nuevoIngrediente = Ingredient::create([
+            'nombre' => strtoupper($validated['nombre']),
+            // Puedes poner valores por defecto si tu tabla los requiere
+        ]);
+
+        return response()->json($nuevoIngrediente);
+    }
+
+    public function edit(Recipe $recipe)
+    {
+        // Cargamos las relaciones para que el formulario de edición tenga los datos
+        return Inertia::render('Recipes/Index', [
+            'recipe' => $recipe->load(['ingredients', 'steps']),
+            'isEditing' => true
+        ]);
+    }
+
+
+
+    public function destroy(Recipe $recipe)
+    {
+        set_time_limit(120);
+        try {
+            DB::transaction(function () use ($recipe) {
+                if ($recipe->foto_principal) {
+                    $this->borrarDeCloudinary($recipe->foto_principal, 'terraza/recetas');
+                }
+
+                foreach ($recipe->steps as $step) {
+                    if ($step->foto_paso) {
+                        $this->borrarDeCloudinary($step->foto_paso, 'terraza/pasos');
+                    }
+                }
+
+                $recipe->delete();
+            });
+
+            return Redirect::back();
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar receta: ' . $e->getMessage());
+            return Redirect::back()->with('error', 'No se pudo eliminar la receta.');
+        }
+    }
+
+    /**
+     * Función auxiliar para limpiar Cloudinary (como en tu proyecto base)
+     */
+    private function borrarDeCloudinary($url, $folder)
+    {
+        try {
+            $publicId = $folder . "/" . pathinfo($url, PATHINFO_FILENAME);
+            cloudinary()->uploadApi()->destroy($publicId);
+            Log::info("Imagen eliminada de Cloudinary: " . $publicId);
+        } catch (\Exception $e) {
+            Log::error("Error al borrar de Cloudinary: " . $e->getMessage());
+        }
     }
 }

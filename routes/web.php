@@ -49,6 +49,9 @@ Route::post('/egresos', [ExpenseController::class, 'store'])->name('egresos.stor
 
 //acceder desde home a ficha tecnica
 Route::resource('recipes', RecipeController::class);
+Route::get('/recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
+Route::delete('/recipes/{recipe}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
+
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');

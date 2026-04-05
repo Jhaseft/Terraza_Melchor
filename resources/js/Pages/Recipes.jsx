@@ -1,10 +1,42 @@
-import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react'; // Importamos router para acciones directas
 import { motion, AnimatePresence } from 'framer-motion';
+import { Pencil, Trash2 } from 'lucide-react'; // Importamos los iconos
+import FormReceta from '@/Components/FormReceta';
 
-export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [] }) {
-    
-    const [tabActiva, setTabActiva] = useState('ver'); // 'ver' o 'agregar'
+export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
+    const [tabActiva, setTabActiva] = useState('ver');
+
+    const [listaRecetas, setListaRecetas] = useState(recipes);
+
+    useEffect(() => {
+        setListaRecetas(recipes);
+    }, [recipes]);
+
+    const eliminarReceta = (id, nombre) => {
+        if (confirm(`¿Estás seguro de eliminar "${nombre}"?`)) {
+            
+            // PRIMERO: Lo quitamos de la vista inmediatamente (Optimistic UI)
+            setListaRecetas(prev => prev.filter(r => r.id !== id));
+
+            // SEGUNDO: Mandamos la orden al servidor
+            router.delete(route('recipes.destroy', id), {
+                preserveScroll: true,
+                onError: () => {
+                    // Si el servidor falla de verdad, lo devolvemos a la lista
+                    alert("No se pudo eliminar en el servidor. Refrescando...");
+                    router.visit(route('recipes.index')); 
+                }
+            });
+        }
+    };
+
+    const [recetaAEditar, setRecetaAEditar] = useState(null);
+
+    const prepararEdicion = (recipe) => {
+        setRecetaAEditar(recipe); 
+        setTabActiva('agregar');  
+    };
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans pb-20">
@@ -38,41 +70,55 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [] 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex flex-col gap-4"
+                            className="flex flex-col gap-4 max-w-4xl mx-auto" // Limito el ancho en desktop
                         >
-                            {/* LISTA DE CARDS ESTILO FOTO (Horizontal) */}
-                            {recipes.length > 0 ? recipes.map((recipe) => (
-                                <Link 
+                            {listaRecetas.length > 0 ? listaRecetas.map((recipe) => (
+                                <div 
                                     key={recipe.id} 
-                                    href={route('recipes.show', recipe.id)}
-                                    className="flex items-center gap-4 bg-[#3a3a44] p-3 rounded-2xl border border-white/5 active:scale-95 transition-transform"
+                                    className="group flex items-center gap-4 bg-[#3a3a44] p-3 rounded-2xl border border-white/5 hover:border-white/10 transition-all"
                                 >
-                                    {/* Imagen a la izquierda */}
-                                    <div className="w-20 h-20 rounded-xl bg-[#1a1a1a] flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
-                                        {recipe.foto_principal ? (
-                                            <img src={recipe.foto_principal} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-2xl">🍲</span>
-                                        )}
-                                    </div>
+                                    {/* Link envolviendo la Info e Imagen */}
+                                    <Link 
+                                        href={route('recipes.show', recipe.id)}
+                                        className="flex flex-1 items-center gap-4 active:scale-[0.98] transition-transform"
+                                    >
+                                        <div className="w-20 h-20 rounded-xl bg-[#1a1a1a] flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
+                                            {recipe.foto_principal ? (
+                                                <img src={recipe.foto_principal} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-2xl">🍲</span>
+                                            )}
+                                        </div>
 
-                                    {/* Info a la derecha */}
-                                    <div className="flex-1">
-                                        <span className="text-[8px] font-black text-[#96be8c] uppercase tracking-widest">
-                                            {recipe.categoria}
-                                        </span>
-                                        <h3 className="text-sm font-black uppercase leading-tight mt-1">
-                                            {recipe.nombre}
-                                        </h3>
-                                        <p className="text-[10px] text-gray-400 mt-1">
-                                            {recipe.ingredients?.length || 0} ingredientes
-                                        </p>
+                                        <div className="flex-1">
+                                            <span className="text-[8px] font-black text-[#96be8c] uppercase tracking-widest">
+                                                {recipe.categoria}
+                                            </span>
+                                            <h3 className="text-sm font-black uppercase leading-tight mt-1">
+                                                {recipe.nombre}
+                                            </h3>
+                                            <p className="text-[10px] text-gray-400 mt-1">
+                                                {recipe.ingredients?.length || 0} ingredientes
+                                            </p>
+                                        </div>
+                                    </Link>
+
+                                    {/* ACCIONES (Lápiz y Basurero) */}
+                                    <div className="flex gap-2 pr-2">
+                                        <button 
+                                            onClick={() => prepararEdicion(recipe)}
+                                            className="p-3 bg-white/5 hover:bg-[#ff6b00]/20 text-gray-400 hover:text-[#ff6b00] rounded-xl transition-all"
+                                        >
+                                            <Pencil size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => eliminarReceta(recipe.id, recipe.nombre)}
+                                            className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
-                                    
-                                    <div className="text-gray-600 pr-2">
-                                        <span className="text-xl">→</span>
-                                    </div>
-                                </Link>
+                                </div>
                             )) : (
                                 <div className="py-20 text-center opacity-30 italic text-sm">
                                     Aún no hay recetas registradas
@@ -86,21 +132,20 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [] 
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                         >
-                            {/* Aquí irá el formulario que diseñaremos luego */}
-                            <div className="bg-[#1a1a1a] p-8 rounded-3xl border-2 border-dashed border-white/10 text-center">
-                                <p className="text-xs uppercase font-bold text-gray-500">
-                                    Formulario de Nueva Receta en construcción...
-                                </p>
-                            </div>
+                            <FormReceta 
+                                catalogo={catalogo_ingredientes} 
+                                categoriasExistentes={categorias_existentes} 
+                                onSuccessSave={() => setTabActiva('ver')}
+                            />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* boton volver*/}
+            {/* BOTÓN VOLVER */}
             <Link 
                 href={route('home')}
-                className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em]"
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#ff6b00] transition-colors z-50"
             >
                 ← Menú Principal
             </Link>
