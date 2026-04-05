@@ -11,7 +11,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Título dinámico -->
-    <title inertia>{{ config('app.name', 'Holli') }}</title>
+    <title inertia>Terrazas</title>
     
 
     <!-- Favicon -->
