@@ -3,34 +3,31 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 export default function Ingresos({ orders = [] }) { // Recibimos las órdenes de la DB
-    console.log("Órdenes recibidas:", orders);
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
+    const getFechaBolivia = () => new Date().toLocaleDateString('en-CA');
+    const [fechaSeleccionada, setFechaSeleccionada] = useState(getFechaBolivia());
 
-    // --- LÓGICA DE FILTRADO Y CÁLCULOS ---
+    // LÓGICA DE FILTRADO Y CÁLCULOS
+    const pedidosDia = orders.filter(order => {
+        const fechaDB = order.fecha ? order.fecha.split('T')[0] : '';
+        return fechaDB === fechaSeleccionada;
+    });
 
-    // 1. Filtrar pedidos del DÍA seleccionado
-    const pedidosDia = orders.filter(order => 
-        order.created_at && order.created_at.startsWith(fechaSeleccionada)
-    );
+    const mesSeleccionado = fechaSeleccionada.substring(0, 7); // Ejemplo: "2026-04"
+    const pedidosMes = orders.filter(order => {
+        const fechaDB = order.fecha ? order.fecha.split('T')[0] : '';
+        return fechaDB.startsWith(mesSeleccionado);
+    });
 
-    // 2. Filtrar pedidos del MES seleccionado (YYYY-MM)
-    const mesActual = fechaSeleccionada.substring(0, 7);
-    const pedidosMes = orders.filter(order => 
-        order.created_at && order.created_at.startsWith(mesActual)
-    );
-
-    // 3. Cálculos de Platos (Suma de la columna no_platos)
     const totalPlatosDia = pedidosDia.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
     const totalPlatosMes = pedidosMes.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
 
-    // 4. Cálculos de Pedidos (Conteo de filas)
     const totalPedidosDia = pedidosDia.length;
     const totalPedidosMes = pedidosMes.length;
 
-    // --- HELPERS DE FECHA ---
     const formatearFechaLarga = (fecha) => {
+        if (!fecha) return "";
         const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        return new Date(fecha + "T00:00:00").toLocaleDateString('es-ES', opciones).toUpperCase();
+        return new Date(fecha + "T12:00:00").toLocaleDateString('es-ES', opciones).toUpperCase();
     };
 
     const formatearFechaCorta = (fecha) => {

@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model
 {
-    // Campos que permitimos llenar desde el formulario
-    protected $fillable = ['nombre', 'monto'];
+    protected $fillable = ['fecha', 'nombre', 'monto'];
+
+    protected $casts = [
+        'fecha' => 'date',
+        'monto' => 'decimal:2'
+    ];
 }

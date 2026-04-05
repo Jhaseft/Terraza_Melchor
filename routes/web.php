@@ -22,6 +22,7 @@ use App\Http\Controllers\FilterController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomOrderController;
+use App\Http\Controllers\RecipeController;
 
 //al iniciar la aplicacion
 Route::get('/', function () {
@@ -46,7 +47,8 @@ Route::get('/ver-pedidos', [OrderController::class, 'index'])->name('VerPedidos.
 Route::get('/egresos', [ExpenseController::class, 'index'])->name('egresos.index');
 Route::post('/egresos', [ExpenseController::class, 'store'])->name('egresos.store');
 
-
+//acceder desde home a ficha tecnica
+Route::resource('recipes', RecipeController::class);
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');

@@ -5,9 +5,13 @@ export default function Welcome() {
     
     const [conteoPersonal, setConteoPersonal] = useState(0);
 
+    const getFechaBolivia = () => {
+        return new Date().toLocaleDateString('en-CA');
+    };
+
     useEffect(() => {
         const guardado = JSON.parse(localStorage.getItem('registro_mesero'));
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = getFechaBolivia();
 
         if (guardado) {
             // Si la fecha guardada NO es hoy, reseteamos a 0
@@ -24,7 +28,7 @@ export default function Welcome() {
     }, []);
 
     const { data, setData, post, processing } = useForm({
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: getFechaBolivia(),
         nombre_plato: '',
         cliente: '',
         cantidad: 0,
@@ -52,10 +56,11 @@ export default function Welcome() {
             onSuccess: () => {
                 // calcular el numero de platos vendidos
                 const nuevoTotal = Number(conteoPersonal) + Number(data.cantidad);
+                const hoy = getFechaBolivia();
 
                 localStorage.setItem('registro_mesero', JSON.stringify({ 
                     total: nuevoTotal, 
-                    fecha: new Date().toISOString().split('T')[0] 
+                    fecha: hoy
                 }));
 
                 //Actualizamos la vista
@@ -107,7 +112,7 @@ export default function Welcome() {
                                 {/* DISEÑO VISUAL: Botón sólido con padding real para que no colapse */}
                                 <div className="bg-[#1a1a1a] border border-white/10 px-6 py-2.5 rounded-md shadow-xl flex items-center justify-center min-w-[150px]">
                                     <span className="text-white font-black text-sm tracking-tighter italic">
-                                        {data.fecha ? new Date(data.fecha + "T00:00:00").toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Seleccionar Fecha'}
+                                        {data.fecha ? data.fecha.split('-').reverse().join('/') : 'Seleccionar Fecha'}
                                     </span>
                                 </div>
 

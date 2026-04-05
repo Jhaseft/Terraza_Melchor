@@ -6,7 +6,8 @@ import autoTable from "jspdf-autotable";
 
 
 export default function VerPedidos({ pedidos }) {
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
+    const getFechaBolivia = () => new Date().toLocaleDateString('en-CA');
+    const [fechaSeleccionada, setFechaSeleccionada] = useState(getFechaBolivia());
 
     const formatearFechaCorta = (fecha) => {
         const [year, month, day] = fecha.split('-');
@@ -18,9 +19,11 @@ export default function VerPedidos({ pedidos }) {
     // Columnas actualizadas según tu pedido
     const columnas = ["N°", "Cliente", "Platos", "QR?", "Observaciones"];
 
-    const pedidosFiltrados = pedidosSeguros.filter(p => 
-        p.created_at && p.created_at.startsWith(fechaSeleccionada)
-    );
+    const pedidosFiltrados = pedidosSeguros.filter(p => {
+        const fechaLimpiaDB = p.fecha ? p.fecha.split('T')[0] : '';
+        
+        return fechaLimpiaDB === fechaSeleccionada;
+    });
 
     const totalPlatosDia = pedidosFiltrados.reduce((acc, p) => 
         acc + (parseInt(p.no_platos) || 0), 0

@@ -14,6 +14,7 @@ class Order extends Model
 
     // Campos que permitimos llenar desde el formulario
     protected $fillable = [
+        'fecha',
         'nombre_cliente',
         'no_platos',
         'qr',
@@ -25,6 +26,7 @@ class Order extends Model
      * Esto asegura que 'qr' siempre se comporte como un booleano en tu código
      */
     protected $casts = [
+        'fecha' => 'date',
         'qr' => 'boolean',
         'no_platos' => 'integer',
         'created_at' => 'datetime',

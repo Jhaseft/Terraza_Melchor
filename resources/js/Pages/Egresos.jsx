@@ -7,10 +7,12 @@ export default function Egresos({ expenses }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [pin, setPin] = useState("");
     const PIN_CORRECTO = "1234"; // Define aquí la contraseña
+    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toLocaleDateString('en-CA'));
 
-    const { data, setData, post, processing, reset, errors } = useForm({
+    const { data, setData, post, transform, processing, reset, errors } = useForm({
         nombre: '',
         monto: '',
+        fecha: fechaSeleccionada,
     });
 
     // Validación de PIN
@@ -22,15 +24,21 @@ export default function Egresos({ expenses }) {
 
     const submit = (e) => {
         e.preventDefault();
+        
+        // 1. Agregamos la fecha al objeto que se va a enviar
+        transform((data) => ({
+            ...data,
+            fecha: fechaSeleccionada,
+        }));
+
+        // 2. Enviamos normal
         post(route('egresos.store'), {
             onSuccess: () => reset(),
         });
     };
 
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
-        // Enviamos la fecha al controlador
         router.get(route('egresos.index'), 
             { fecha: fechaSeleccionada }, 
             { 

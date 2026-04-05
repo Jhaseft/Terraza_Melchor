@@ -8,7 +8,7 @@ export default function Gestion() {
         { label: "Ver Pedidos", href: route('VerPedidos.create'), count: null },
         { label: "Ingresos", href: route('ingresos.index'), count: null },
         { label: "Egresos", href: route('egresos.index'), count: null },
-        { label: "Compras Ingredientes", href: "#", count: null },
+        { label: "Fichas técnicas", href: route('recipes.index'), count: null },
     ];
 
     return (
