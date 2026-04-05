@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [] }) {
-    // 1. Estado para las Tabs
+    
     const [tabActiva, setTabActiva] = useState('ver'); // 'ver' o 'agregar'
 
     return (
@@ -97,7 +97,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [] 
                 </AnimatePresence>
             </div>
 
-            {/* BOTÓN VOLVER FLOTANTE (Opcional) */}
+            {/* boton volver*/}
             <Link 
                 href={route('home')}
                 className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em]"

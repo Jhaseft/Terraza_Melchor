@@ -13,8 +13,8 @@ class RecipeController extends Controller
     // Listar recetas y catálogo de ingredientes para el formulario
     public function index()
     {
-        return Inertia::render('Recipes', [ // Sin la extensión .jsx
-            'recipes' => Recipe::all(),
+        return Inertia::render('Recipes', [ 
+            'recipes' => Recipe::with('ingredients')->get(),
             'catalogo_ingredientes' => Ingredient::all()
         ]);
     }
@@ -73,5 +73,16 @@ class RecipeController extends Controller
             DB::rollBack();
             return back()->withErrors(['error' => 'Error al guardar: ' . $e->getMessage()]);
         }
+    }
+
+    public function show($id)
+    {
+        // Traemos la receta con sus relaciones
+        $recipe = Recipe::with(['ingredients', 'steps'])->findOrFail($id);
+
+        // IMPORTANTE: El nombre aquí debe coincidir con tu archivo .jsx
+        return Inertia::render('RecipeShow', [
+            'recipe' => $recipe
+        ]);
     }
 }
