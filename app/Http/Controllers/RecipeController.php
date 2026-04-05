@@ -57,8 +57,7 @@ class RecipeController extends Controller
                         ]
                     ]
                 );
-                //$urlPrincipal = $result['secure_url'] ?? null;
-                $urlPrincipal = "https://via.placeholder.com/200";
+                $urlPrincipal = $result['secure_url'] ?? null;
             }
             $recipe = Recipe::create([
                 'nombre' => strtoupper($request->nombre),
@@ -97,8 +96,8 @@ class RecipeController extends Controller
                             ]
                         ]
                     );
-                    //$urlPaso = $resultPaso['secure_url'];
-                    $urlPaso = "https://via.placeholder.com/200";
+                    $urlPaso = $resultPaso['secure_url'];
+                   
                 }
 
                 $recipe->steps()->create([
