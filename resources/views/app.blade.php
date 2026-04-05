@@ -6,11 +6,12 @@
         $logoPath = $page['props']['appLogo'] ?? 'https://res.cloudinary.com/.../default_favicon.jpg';
     @endphp
     <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Título dinámico -->
-    <title inertia>{{ config('app.name', 'Holli') }}</title>
+    <title inertia>Terrazas</title>
     
 
     <!-- Favicon -->
