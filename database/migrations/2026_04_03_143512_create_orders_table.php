@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id(); 
+            $table->date('fecha');
+            $table->string('nombre_plato');
             $table->string('nombre_cliente')->nullable(); 
             $table->integer('no_platos')->default(0);    
             $table->boolean('qr')->default(false);      
+            $table->string('metodo_entrega')->default('R');
             $table->text('observaciones')->nullable();  
             $table->timestamps(); 
         });

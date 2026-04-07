@@ -17,18 +17,16 @@ export default function VerPedidos({ pedidos }) {
     const pedidosSeguros = pedidos || [];
     
     // Columnas actualizadas según tu pedido
-    const columnas = ["N°", "Cliente", "Platos", "QR?", "Observaciones"];
 
+    const columnas = ["N°", "Cliente", "Plato", "Cant.", "QR?", "Entrega", "Obs."];
     const pedidosFiltrados = pedidosSeguros.filter(p => {
         const fechaLimpiaDB = p.fecha ? p.fecha.split('T')[0] : '';
-        
         return fechaLimpiaDB === fechaSeleccionada;
     });
 
     const totalPlatosDia = pedidosFiltrados.reduce((acc, p) => 
         acc + (parseInt(p.no_platos) || 0), 0
     );
-
     
     const descargarPDF = () => {
         const doc = new jsPDF();
@@ -42,13 +40,15 @@ export default function VerPedidos({ pedidos }) {
             body: pedidosFiltrados.map((p, index) => [
                 index + 1,
                 p.nombre_cliente,
+                p.nombre_plato || '---',
                 p.no_platos,
                 p.qr ? 'SÍ' : 'NO',
+                p.metodo_entrega === 'M' ? 'MOTO' : 'RECOJO',
                 p.observaciones || '---'
             ]),
             startY: 20,
             theme: 'grid',
-            headStyles: { fillColor: [255, 107, 0] } // El naranja de tu diseño
+            headStyles: { fillColor: [255, 107, 0] } 
         });
 
         doc.save(`Pedidos_${fechaSeleccionada}.pdf`);
@@ -61,8 +61,7 @@ export default function VerPedidos({ pedidos }) {
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                // Cambiamos max-w-[500px] por w-full y un max-w más amplio para Desktop
-                className="w-full max-w-[900px] pb-32" 
+                className="w-full max-w-[1100px] pb-32" 
             >
                 {/* HEADER */}
                 <div className="flex items-center gap-4 mb-8">
@@ -104,11 +103,11 @@ export default function VerPedidos({ pedidos }) {
                 {/* TABLA DE PEDIDOS */}
                 <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse min-w-[600px]">
+                        <table className="w-full text-left border-collapse min-w-[700px]">
                             <thead>
                                 <tr className="bg-[#ff6b00]">
                                     {columnas.map((col, i) => (
-                                        <th key={i} className="p-4 text-[10px] font-black uppercase text-black text-center border-r border-black/40 last:border-0 whitespace-nowrap">
+                                        <th key={i} className="p-4 text-[10px] font-black uppercase text-black text-center border-r border-black/40 last:border-0">
                                             {col}
                                         </th>
                                     ))}
@@ -117,35 +116,14 @@ export default function VerPedidos({ pedidos }) {
                             <tbody>
                                 {pedidosFiltrados.length > 0 ? (
                                     pedidosFiltrados.map((pedido, index) => (
-                                        <tr key={pedido.id} className="border-b border-white/5 text-[10px] hover:bg-white/5 transition-colors ">
-                                            {/* columna N */}
-                                            <td className="text-[12px] p-3 text-center font-bold text-white border-r border-white/40 min-w-[50px]">
-                                                {index + 1}
-                                            </td>
-
-                                            {/* columna nombre cliente */}
-                                            <td className="text-[12px] p-3 uppercase font-bold text-white truncate max-w-[120px] border-r border-white/40 min-w-[180px]">
-                                                {pedido.nombre_cliente}
-                                            </td>
-
-                                            {/* columna platos */}
-                                            <td className="text-[12px] p-3 text-center font-bold text-white border-r border-white/40 min-w-[80px]">
-                                                {pedido.no_platos}
-                                            </td>
-
-                                            {/* columna QR */}
-                                            <td className="p-3 text-center border-r border-white/40 min-w-[70px]">
-                                                {pedido.qr ? (
-                                                    <span className="text-white rounded text-[12px] font-bold">SÍ</span>
-                                                ) : (
-                                                    <span className="text-white rounded text-[12px] font-bold">NO</span>
-                                                )}
-                                            </td>
-
-                                            {/* columna observaciones */}
-                                            <td className="text-[12px] p-3 text-white font-bold min-w-[200px]">
-                                                {pedido.observaciones || "---"}
-                                            </td>
+                                        <tr key={pedido.id} className="border-b border-white/5 text-[12px] hover:bg-white/5 transition-colors font-bold">
+                                            <td className="p-3 text-center border-r border-white/40">{index + 1}</td>
+                                            <td className="p-3 uppercase border-r border-white/40 min-w-[150px]">{pedido.nombre_cliente}</td>
+                                            <td className="p-3 uppercase border-r border-white/40 min-w-[200px]">{pedido.nombre_plato || '---'}</td>
+                                            <td className="p-3 text-center border-r border-white/40">{pedido.no_platos}</td>
+                                            <td className="p-3 text-center border-r border-white/40">{pedido.qr ? "SÍ" : "NO"}</td>
+                                            <td className="p-3 text-center border-r border-white/40">{pedido.metodo_entrega === 'M' ? "🏍️" : "🏪"}</td>
+                                            <td className="p-3 min-w-[250px]">{pedido.observaciones || "---"}</td>
                                         </tr>
                                     ))
                                 ) : (
@@ -162,46 +140,6 @@ export default function VerPedidos({ pedidos }) {
                 </div>
                 
             </motion.div>
-
-            {/* TOTALES INFERIORES */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#2c2c34]/95 backdrop-blur-md border-t border-white/5 p-4 flex flex-col items-center z-50">
-                <div className="w-full max-w-[450px]">
-                    {/* ventas totales y el boton de descargar pdf */}
-                    <div className="flex justify-between items-center mb-4 px-2">
-                        <p className="text-[10px] font-black uppercase text-gray-300 tracking-widest">
-                            Ventas Totales
-                        </p>
-                        
-                        <button 
-                            onClick={descargarPDF}
-                            className="bg-black text-white text-[9px] font-black py-1.5 px-3 rounded-lg shadow-xl border border-white/10 active:scale-95 transition-transform uppercase"
-                        >
-                            PDF
-                        </button>
-                    </div>
-                    {/* Grid de 4 circulos */}
-                    <div className="grid grid-cols-4 w-full gap-2">
-                        {[
-                            { label: "Platos", val: totalPlatosDia },
-                            { label: "Pagado", val: 0 },
-                            { label: "Por Cobrar", val: 0 },
-                            { label: "TOTAL", val: 0 }
-                        ].map((item, i) => (
-                            <div key={i} className="flex flex-col items-center">
-                                <p className="text-[9px] font-black uppercase text-white mb-2 text-center leading-tight h-5 flex items-center">
-                                    {item.label}
-                                </p>
-                                {/* El círculo/indicador de la foto */}
-                                <div className="w-8 h-8 flex items-center justify-center">
-                                    <span className="text-[16px] font-black text-[#96be8c]">
-                                        {item.val}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }

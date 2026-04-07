@@ -15,10 +15,12 @@ class Order extends Model
     // Campos que permitimos llenar desde el formulario
     protected $fillable = [
         'fecha',
+        'nombre_plato',
         'nombre_cliente',
         'no_platos',
         'qr',
-        'observaciones',
+        'metodo_entrega',
+        'observaciones'
     ];
 
     /**

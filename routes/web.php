@@ -30,9 +30,7 @@ Route::get('/', function () {
 })->name('home');
 
 //desde el home para registrar pedido
-Route::get('/registrar-pedido', function () {
-    return Inertia::render('RegistrarPedido'); 
-})->name('pedidos.create');
+Route::get('/registrar-pedido', [OrderController::class, 'create'])->name('pedidos.create');
 
 //registar un pedido
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');

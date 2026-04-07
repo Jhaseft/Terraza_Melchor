@@ -1,7 +1,8 @@
 import { useForm, Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState,useEffect } from "react";
-export default function Welcome() {
+
+export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
     
     const [conteoPersonal, setConteoPersonal] = useState(0);
 
@@ -31,8 +32,9 @@ export default function Welcome() {
         fecha: getFechaBolivia(),
         nombre_plato: '',
         cliente: '',
-        cantidad: 0,
+        cantidad: '',
         metodo_entrega: 'R', 
+        es_qr: false, //la funcion para de tooogle de qr que añadiremos mas tarde
         nota: ''
     });
 
@@ -42,13 +44,13 @@ export default function Welcome() {
 
         // VALIDACIÓN: Cliente y Plato no vacíos
         if (!data.nombre_plato.trim() || !data.cliente.trim()) {
-            alert("⚠️ Por favor, llena el nombre del plato y del cliente.");
+            alert("Por favor, llena el nombre del plato y del cliente.");
             return;
         }
 
         // VALIDACIÓN: Cantidad mayor a 0 
-        if (data.cantidad <= 0) {
-            alert("⚠️ La cantidad de platos debe ser mayor a 0.");
+        if (!data.cantidad || Number(data.cantidad) <= 0) {
+            alert("La cantidad de platos debe ser mayor a 0.");
             return;
         }
 
@@ -71,7 +73,7 @@ export default function Welcome() {
                     ...prevData,
                     cliente: '',
                     nota: '',
-                    cantidad: 0,
+                    cantidad: '',
                 }));
             },
         });
@@ -158,11 +160,17 @@ export default function Welcome() {
                             Nombre del Plato:
                         </label>
                         <input 
+                            list="lista-recetas"
                             type="text" 
                             className="w-full bg-[#e0e0e0] border-none rounded-sm p-2 text-black font-medium"
                             value={data.nombre_plato}
-                            onChange={e => setData('nombre_plato', e.target.value)}
+                            onChange={e => setData('nombre_plato', e.target.value.toLocaleUpperCase())}
                         />
+                        <datalist id="lista-recetas">
+                            {nombresPlatos.map((nombre, i) => (
+                                <option key={i} value={nombre} />
+                            ))}
+                        </datalist>
                     </div>
                     {/* nombre del cliente */}
                     <div className="space-y-1">
@@ -171,39 +179,47 @@ export default function Welcome() {
                             Apellido & Nombre
                         </label>
                         <input 
+                            list="lista-clientes"
                             type="text" 
                             className="w-full bg-[#e0e0e0] border-none rounded-lg p-3 text-black font-medium"
                             value={data.cliente}
-                            onChange={e => setData('cliente', e.target.value)}
+                            onChange={e => setData('cliente', e.target.value.toLocaleUpperCase())}
                         />
+                        <datalist id="lista-clientes">
+                            {nombresClientes.map((c, i) => <option key={i} value={c} />)}
+                        </datalist>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-6">
-                        {/* cantidad de platos */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* cantidad de platos a introducir*/}
                         <div className="space-y-1">
                             <label className="text-[#96be8c] font-bold text-sm flex items-center gap-2">
                                 <span className="bg-[#96be8c] text-[#2c2c34] rounded-full w-5 h-5 flex items-center justify-center text-[10px]">4</span>
-                                Platos
+                                N° Platos:
                             </label>
                             <input 
-                                type="text" // Cambiamos a text para eliminar las flechitas de una vez por todas
-                                inputMode="numeric" // En móviles abre el teclado numérico directamente
+                                type="number" 
                                 className="w-full bg-[#e0e0e0] border-none rounded-lg p-4 text-black text-center text-xl font-bold"
                                 value={data.cantidad}
-                                onChange={e => {
-                                    const val = e.target.value;
-                                    // Solo permite números. Si borra todo, se queda vacío para que pueda escribir bien
-                                    if (val === '' || /^[0-9\b]+$/.test(val)) {
-                                        setData('cantidad', val);
-                                    }
-                                }}
-                                // Si el usuario sale del input y está vacío, ponemos el 0 por defecto
-                                onBlur={() => {
-                                    if (data.cantidad === '') setData('cantidad', 0);
-                                }}
+                                onChange={e => setData('cantidad', e.target.value)}
                             />
                         </div>
-                        {/* si va a recoger o por moto */}
+
+                        {/* Botón de QR destacado */}
+                        <div className="space-y-1">
+                            <label className="text-[#96be8c] font-bold text-sm">Pago QR?</label>
+                            <button 
+                                type="button"
+                                onClick={() => setData('es_qr', !data.es_qr)}
+                                className={`w-full h-[60px] rounded-lg border-2 flex flex-col items-center justify-center transition-all ${data.es_qr ? 'border-[#ff6b00] bg-[#ff6b00]/20 text-[#ff6b00]' : 'border-transparent bg-[#4a4a55] text-gray-400'}`}
+                            >
+                                <span className="text-xl">{data.es_qr ? '✅' : '📷'}</span>
+                                <span className="text-[9px] font-black uppercase">QR</span>
+                            </button>
+                        </div> 
+                    
+
+                        {/* si va a recoger o sera entrega por moto */}
                         <div className="space-y-1">
                             <label className="text-[#96be8c] font-bold text-sm flex items-center gap-2">
                                 <span className="bg-[#96be8c] text-[#2c2c34] rounded-full w-5 h-5 flex items-center justify-center text-[10px]">5</span>
@@ -236,7 +252,9 @@ export default function Welcome() {
                     {/* el total en bs */}
                     <div className="text-center py-4">
                         <p className="text-gray-400 text-sm uppercase tracking-widest mb-1 font-bold">Total</p>
-                        <h2 className="text-5xl font-black italic">0 <span className="text-2xl not-italic">Bs.</span></h2>
+                        <h2 className="text-4xl font-black">
+                            {data.cantidad ? (Number(data.cantidad) * 30) : 0} <span className="text-xl not-italic">Bs.</span>
+                        </h2>
                     </div>
 
                     {/* bton de guardar */}
@@ -255,7 +273,7 @@ export default function Welcome() {
                             type="text" 
                             className="w-full bg-[#e0e0e0] border-none rounded-lg p-2 text-black text-sm"
                             value={data.nota}
-                            onChange={e => setData('nota', e.target.value)}
+                            onChange={e => setData('nota', e.target.value.toLocaleUpperCase())}
                         />
                     </div>
                 </form>
