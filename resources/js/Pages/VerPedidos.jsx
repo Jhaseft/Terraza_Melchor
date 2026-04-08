@@ -1,6 +1,6 @@
 import { Link, Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -16,17 +16,20 @@ export default function VerPedidos({ pedidos }) {
 
     const pedidosSeguros = pedidos || [];
     
-    // Columnas actualizadas según tu pedido
+    const [busquedaCliente, setBusquedaCliente] = useState("");
 
+    // columnas
     const columnas = ["N°", "Cliente", "Plato", "Cant.", "QR?", "Entrega", "Obs."];
-    const pedidosFiltrados = pedidosSeguros.filter(p => {
-        const fechaLimpiaDB = p.fecha ? p.fecha.split('T')[0] : '';
-        return fechaLimpiaDB === fechaSeleccionada;
-    });
+    const pedidosFiltrados = useMemo(() => {
+        return pedidosSeguros.filter(p => {
+            const fechaLimpiaDB = p.fecha ? p.fecha.split('T')[0] : '';
+            const coincideFecha = fechaLimpiaDB === fechaSeleccionada;
+            const coincideCliente = p.nombre_cliente.toLowerCase().includes(busquedaCliente.toLowerCase());
+            return coincideFecha && coincideCliente;
+        });
+    }, [pedidosSeguros, fechaSeleccionada, busquedaCliente]);
 
-    const totalPlatosDia = pedidosFiltrados.reduce((acc, p) => 
-        acc + (parseInt(p.no_platos) || 0), 0
-    );
+  
     
     const descargarPDF = () => {
         const doc = new jsPDF();
@@ -74,8 +77,9 @@ export default function VerPedidos({ pedidos }) {
                     </h1>
                 </div>
 
-                {/* SELECTOR DE FECHA */}
-                <div className="flex justify-center mb-8">
+                {/* SELECTOR DE FECHA Y DE CLIENTES */}
+                <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
+                    {/* Filtro Fecha */}
                     <div className="relative w-full md:max-w-[400px] h-[60px] group"> 
                         
                         <input 
@@ -97,6 +101,26 @@ export default function VerPedidos({ pedidos }) {
                                 {formatearFechaCorta(fechaSeleccionada)}
                             </span>
                         </div>
+                    </div>
+
+                    {/* Filtro Cliente (Igual al de Registrar Pedido) */}
+                    <div className="relative w-full md:w-80 h-[45px]">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                            <span className="text-sm opacity-50">👤</span>
+                        </div>
+                        <input 
+                            type="text"
+                            placeholder="BUSCAR CLIENTE..."
+                            value={busquedaCliente}
+                            onChange={(e) => setBusquedaCliente(e.target.value)}
+                            className="w-full h-full bg-[#1a1a1a] border border-white/10 rounded-full pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-[#ff6b00] focus:border-[#ff6b00] outline-none transition-all placeholder:text-gray-600"
+                        />
+                        {busquedaCliente && (
+                            <button 
+                                onClick={() => setBusquedaCliente("")}
+                                className="absolute right-4 inset-y-0 text-xs opacity-50 hover:opacity-100"
+                            >✕</button>
+                        )}
                     </div>
                 </div>
 
@@ -127,18 +151,30 @@ export default function VerPedidos({ pedidos }) {
                                         </tr>
                                     ))
                                 ) : (
-                                    <tr className="text-center">
-                                        <td colSpan={5} className="p-20 text-[11px] text-gray-400 italic leading-relaxed">
-                                            No hay registros para el <br /> 
-                                            <span className="text-white not-italic font-bold">{formatearFechaCorta(fechaSeleccionada)}</span>
+                                    <tr>
+                                        <td colSpan={7} className="p-32 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <p className="text-[11px] text-gray-500 uppercase tracking-widest italic leading-relaxed">
+                                                    No hay registros para el <br /> 
+                                                    <span className="text-white not-italic font-black text-sm">{formatearFechaCorta(fechaSeleccionada)}</span>
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
+                </div>   
+                <div className="flex justify-end mt-4">
+                    <button 
+                        onClick={descargarPDF}
+                        disabled={pedidosFiltrados.length === 0}
+                        className="bg-black text-white text-[12px] font-black py-2.5 px-6 rounded-xl shadow-2xl border border-white/10 active:scale-95 transition-all uppercase disabled:opacity-20 disabled:pointer-events-none hover:bg-white hover:text-black"
+                    >
+                        PDF
+                    </button>
                 </div>
-                
             </motion.div>
         </div>
     );

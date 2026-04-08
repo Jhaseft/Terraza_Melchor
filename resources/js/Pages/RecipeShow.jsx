@@ -40,12 +40,12 @@ export default function RecipeShow({ recipe }) {
                                 
                                 <div className="text-right">
                                     {/* PESO / CANTIDAD */}
-                                    <p className="text-[#96be8c] font-black text-xs">
+                                    <p className="text-[#96be8c] font-black text-[18px]">
                                         {Number(ing.pivot.peso)} {ing.pivot.unidad}
                                     </p>
                                     
-                                    {/* COSTO INDIVIDUAL DEBAJO DEL PESO */}
-                                    <p className="text-[10px] text-gray-400 font-bold mt-0.5">
+                                    {/* COSTO INDIVIDUAL */}
+                                    <p className="text-[16px] text-gray-400 font-bold mt-0.5">
                                         {parseFloat(ing.pivot.costo_unitario || 0).toFixed(2)} BOB
                                     </p>
                                 </div>
