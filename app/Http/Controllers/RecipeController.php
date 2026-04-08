@@ -185,4 +185,19 @@ class RecipeController extends Controller
             Log::error("Error al borrar de Cloudinary: " . $e->getMessage());
         }
     }
+
+    public function updateCosts(Request $request)
+    {
+        $items = $request->input('items');
+
+        foreach ($items as $item) {
+            \DB::table('recipe_ingredients')
+                ->where('id', $item['pivot_id'])
+                ->update([
+                    'costo_unitario' => $item['costo_unitario'],
+                    'updated_at'     => now()
+                ]);
+        }
+        return back();
+    }
 }

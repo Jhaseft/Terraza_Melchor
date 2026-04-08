@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Trash2 } from 'lucide-react'; 
 import FormReceta from '@/Components/FormReceta';
+import GestionCostos from '@/Components/GestionCostos';
+import RecipeCard from '@/Components/RecipeCard';
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
     const [tabActiva, setTabActiva] = useState('ver');
@@ -67,73 +68,43 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                     >
                         {recetaAEditar ? 'Editando Receta' : 'Agregar Nueva'}
                     </button>
+                    <button 
+                        onClick={() => setTabActiva('costos')}
+                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${tabActiva === 'costos' ? 'border-b-2 border-[#96be8c] text-white' : 'text-gray-500'}`}
+                    >
+                        Costos de Recetas
+                    </button>
                 </div>
             </div>
 
             <div className="px-6">
                 <AnimatePresence mode="wait">
-                    {tabActiva === 'ver' ? (
+                    {tabActiva === 'ver' && (
                         <motion.div 
                             key="lista"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex flex-col gap-4 max-w-4xl mx-auto"
+                            className="flex flex-col gap-4 max-w-4xl mx-auto w-full"
                         >
-                            {listaRecetas.length > 0 ? listaRecetas.map((recipe) => (
-                                <div 
-                                    key={recipe.id} 
-                                    className="group flex items-center gap-4 bg-[#3a3a44] p-3 rounded-2xl border border-white/5 hover:border-white/10 transition-all"
-                                >
-                                    <Link 
-                                        href={route('recipes.show', recipe.id)}
-                                        className="flex flex-1 items-center gap-4 active:scale-[0.98] transition-transform"
-                                    >
-                                        <div className="w-20 h-20 rounded-xl bg-[#1a1a1a] flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
-                                            {recipe.foto_principal ? (
-                                                <img src={recipe.foto_principal} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-2xl">🍲</span>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <span className="text-[8px] font-black text-[#96be8c] uppercase tracking-widest">
-                                                {recipe.categoria}
-                                            </span>
-                                            <h3 className="text-sm font-black uppercase leading-tight mt-1">
-                                                {recipe.nombre}
-                                            </h3>
-                                            <p className="text-[10px] text-gray-400 mt-1">
-                                                {recipe.ingredients?.length || 0} ingredientes
-                                            </p>
-                                        </div>
-                                    </Link>
-
-                                    <div className="flex gap-2 pr-2">
-                                        <button 
-                                            type="button"
-                                            onClick={(e) => { e.preventDefault(); prepararEdicion(recipe); }}
-                                            className="p-3 bg-white/5 hover:bg-[#ff6b00]/20 text-gray-400 hover:text-[#ff6b00] rounded-xl transition-all"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={(e) => { e.preventDefault(); eliminarReceta(recipe.id, recipe.nombre); }}
-                                            className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            )) : (
+                            {listaRecetas.length > 0 ? (
+                                listaRecetas.map((recipe) => (
+                                    <RecipeCard 
+                                        key={recipe.id}
+                                        recipe={recipe}
+                                        onEdit={prepararEdicion}
+                                        onDelete={eliminarReceta}
+                                    />
+                                ))
+                            ) : (
                                 <div className="py-20 text-center opacity-30 italic text-sm">
                                     Aún no hay recetas registradas
                                 </div>
                             )}
                         </motion.div>
-                    ) : (
+                    )}
+
+                    {tabActiva === 'agregar' && (
                         <motion.div 
                             key="formulario"
                             initial={{ opacity: 0, y: 10 }}
@@ -143,11 +114,25 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                             <FormReceta 
                                 catalogo={catalogo_ingredientes} 
                                 categoriasExistentes={categorias_existentes} 
-                                recetaEditando={recetaAEditar}
                                 onSuccessSave={() => {
                                     setTabActiva('ver');
                                     setRecetaAEditar(null);
                                 }}
+                            />
+                        </motion.div>
+                    )}
+
+                    {tabActiva === 'costos' && (
+                        <motion.div 
+                            key="costos"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                        >
+                            <GestionCostos 
+                                recipes={listaRecetas}
+                                catalogo={catalogo_ingredientes}
+                                onFinish={() => setTabActiva('ver')}
                             />
                         </motion.div>
                     )}

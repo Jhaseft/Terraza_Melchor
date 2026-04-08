@@ -3,10 +3,10 @@ import { useForm, Head, Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { router } from '@inertiajs/react'; 
 
-export default function Egresos({ expenses }) {
+export default function Egresos({ expenses, totales }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [pin, setPin] = useState("");
-    const PIN_CORRECTO = "1234"; // Define aquí la contraseña
+    const PIN_CORRECTO = "1666"; // Define aquí la contraseña
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toLocaleDateString('en-CA'));
 
     const { data, setData, post, transform, processing, reset, errors } = useForm({
@@ -39,15 +39,16 @@ export default function Egresos({ expenses }) {
 
 
     useEffect(() => {
-        router.get(route('egresos.index'), 
-            { fecha: fechaSeleccionada }, 
-            { 
-                preserveState: true, 
-                replace: true,       
-                only: ['expenses']  
-            }
-        );
-    }, [fechaSeleccionada]);
+        if (isAuthenticated) {
+            router.get(route('egresos.index'), 
+                { fecha: fechaSeleccionada }, 
+                { 
+                    preserveState: true, 
+                    replace: true,
+                }
+            );
+        }
+    }, [fechaSeleccionada, isAuthenticated]);
 
     const formatearFechaCorta = (fecha) => {
         if (!fecha) return "";
@@ -163,6 +164,22 @@ export default function Egresos({ expenses }) {
                         {processing ? 'Guardando...' : 'Confirmar Gasto'}
                     </button>
                 </form>
+
+                {/* RESUMEN DE GASTOS (Día, Semana, Mes) */}
+                <div className="mt-8 grid grid-cols-3 gap-3">
+                    <div className="bg-[#1a1a1a] p-3 rounded-2xl border border-white/5 text-center shadow-lg">
+                        <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Hoy</p>
+                        <p className="text-sm font-black text-red-400">{totales?.dia || 0} <span className="text-[8px]">BOB</span></p>
+                    </div>
+                    <div className="bg-[#1a1a1a] p-3 rounded-2xl border border-white/5 text-center shadow-lg">
+                        <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Semana</p>
+                        <p className="text-sm font-black text-red-400">{totales?.semana || 0} <span className="text-[8px]">BOB</span></p>
+                    </div>
+                    <div className="bg-[#1a1a1a] p-3 rounded-2xl border border-white/5 text-center shadow-lg">
+                        <p className="text-[9px] font-black text-gray-400 uppercase mb-1">Mes</p>
+                        <p className="text-sm font-black text-red-400">{totales?.mes || 0} <span className="text-[8px]">BOB</span></p>
+                    </div>
+                </div>
 
                 {/* Lista rápida de egresos */}
                 <div className="mt-8 space-y-3">

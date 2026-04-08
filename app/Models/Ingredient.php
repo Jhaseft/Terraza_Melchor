@@ -12,6 +12,8 @@ class Ingredient extends Model
     // Relación inversa: ¿En qué recetas aparece este ingrediente?
     public function recipes(): BelongsToMany
     {
-        return $this->belongsToMany(Recipe::class, 'recipe_ingredients');
+        return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
+                ->withPivot('id', 'peso', 'unidad', 'costo_unitario', 'subtotal_costo') 
+                ->withTimestamps();
     }
 }

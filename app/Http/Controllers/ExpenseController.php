@@ -11,15 +11,32 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $fecha = $request->input('fecha', Carbon::now('America/La_Paz')->format('Y-m-d'));
+        $fecha = $request->input('fecha', now()->toDateString());
+        
+        // Gastos del día seleccionado
+        $expenses = Expense::whereDate('fecha', $fecha)->orderBy('created_at', 'desc')->get();
 
-        $expenses = Expense::where('fecha', $fecha)
-            ->latest()
-            ->get();
+        // Sumatoria Día
+        $totalDia = Expense::whereDate('fecha', $fecha)->sum('monto');
+
+        // Sumatoria Semana (últimos 7 días desde la fecha seleccionada)
+        $totalSemana = Expense::whereBetween('fecha', [
+            Carbon::parse($fecha)->startOfWeek(), 
+            Carbon::parse($fecha)->endOfWeek()
+        ])->sum('monto');
+
+        // Sumatoria Mes
+        $totalMes = Expense::whereMonth('fecha', Carbon::parse($fecha)->month)
+                        ->whereYear('fecha', Carbon::parse($fecha)->year)
+                        ->sum('monto');
 
         return Inertia::render('Egresos', [
             'expenses' => $expenses,
-            'fechaConsultada' => $fecha 
+            'totales' => [
+                'dia' => $totalDia,
+                'semana' => $totalSemana,
+                'mes' => $totalMes
+            ]
         ]);
     }
 

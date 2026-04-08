@@ -33,8 +33,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('recipe_id')->constrained()->onDelete('cascade');
             $table->foreignId('ingredient_id')->constrained()->onDelete('cascade');
-            $table->decimal('peso', 10, 2)->nullable(); // Peso opcional
-            $table->string('unidad')->default('gr')->nullable(); // Unidad opcional
+            $table->decimal('peso', 10, 2)->nullable(); 
+            $table->string('unidad')->default('gr')->nullable(); 
+            $table->decimal('costo_unitario', 10, 2)->default(0); 
             $table->timestamps();
         });
 

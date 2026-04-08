@@ -2,27 +2,29 @@ import { Link, Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export default function Ingresos({ orders = [] }) { // Recibimos las órdenes de la DB
+export default function Ingresos({ orders = [] }) {
     const getFechaBolivia = () => new Date().toLocaleDateString('en-CA');
     const [fechaSeleccionada, setFechaSeleccionada] = useState(getFechaBolivia());
 
-    // LÓGICA DE FILTRADO Y CÁLCULOS
+    // --- LÓGICA DE FILTRADO ---
     const pedidosDia = orders.filter(order => {
         const fechaDB = order.fecha ? order.fecha.split('T')[0] : '';
         return fechaDB === fechaSeleccionada;
     });
 
-    const mesSeleccionado = fechaSeleccionada.substring(0, 7); // Ejemplo: "2026-04"
+    const mesSeleccionado = fechaSeleccionada.substring(0, 7);
     const pedidosMes = orders.filter(order => {
         const fechaDB = order.fecha ? order.fecha.split('T')[0] : '';
         return fechaDB.startsWith(mesSeleccionado);
     });
 
+    // --- CÁLCULOS DE PLATOS ---
     const totalPlatosDia = pedidosDia.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
     const totalPlatosMes = pedidosMes.reduce((acc, curr) => acc + (parseInt(curr.no_platos) || 0), 0);
 
-    const totalPedidosDia = pedidosDia.length;
-    const totalPedidosMes = pedidosMes.length;
+    // --- CÁLCULOS DE DINERO (30 BS x Plato) ---
+    const dineroDia = totalPlatosDia * 30;
+    const dineroMes = totalPlatosMes * 30;
 
     const formatearFechaLarga = (fecha) => {
         if (!fecha) return "";
@@ -38,7 +40,7 @@ export default function Ingresos({ orders = [] }) { // Recibimos las órdenes de
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans flex items-center justify-center p-4">
-            <Head title="Estadísticas - Terraza Melchor" />
+            <Head title="Ingresos - Terraza Melchor" />
 
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -95,41 +97,62 @@ export default function Ingresos({ orders = [] }) { // Recibimos las órdenes de
 
                 {/* MENSAJE DE ESTADO */}
                 <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-6">
-                    {totalPedidosDia === 0 ? "Sin registros en este día" : `Mostrando ${totalPedidosDia} registros`}
+                    {dineroDia === 0 ? "Sin registros en este día" : `Mostrando ${dineroMes} registros`}
                 </p>
 
-                {/* TABLA DE ESTADÍSTICAS */}
-                <div className="border-2 border-white rounded-xl overflow-hidden text-xs uppercase font-bold">
-                    {/* Encabezados */}
-                    <div className="grid grid-cols-3 border-b-2 border-white bg-white/5">
-                        <div className="p-2 border-r-2 border-white">Cantidad</div>
-                        <div className="p-2 border-r-2 border-white text-[#96be8c]">Del Día</div>
-                        <div className="p-2">Del Mes</div>
+                {/* TARJETA DESTACADA DINERO TOTAL */}
+                <div className="bg-[#1a1a1a] rounded-2xl p-4 mb-6 border-l-4 border-[#96be8c] flex justify-between items-center shadow-inner">
+                    <div className="text-left">
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Ingreso del Día</p>
+                        <h3 className="text-3xl font-black text-[#96be8c]">{dineroDia} <span className="text-xs">BS</span></h3>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Mes</p>
+                        <h3 className="text-xl font-black text-white/70">{dineroMes} <span className="text-[10px]">BS</span></h3>
+                    </div>
+                </div>
+
+                {/* TABLA DE ESTADÍSTICAS MEJORADA */}
+                <div className="border-2 border-white rounded-xl overflow-hidden text-[10px] uppercase font-bold">
+                    <div className="grid grid-cols-3 border-b-2 border-white bg-white/5 font-black text-gray-400">
+                        <div className="p-2 border-r-2 border-white">Concepto</div>
+                        <div className="p-2 border-r-2 border-white text-[#96be8c]">Día</div>
+                        <div className="p-2">Mes</div>
                     </div>
                     
                     {/* Fila Total Platos */}
                     <div className="grid grid-cols-3 border-b-2 border-white bg-white/5 items-center">
-                        <div className="p-3 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] text-gray-400">de platos</span></div>
-                        <div className="p-2 border-r-2 border-white text-2xl font-black text-[#96be8c]">
-                            {totalPlatosDia}
-                        </div>
-                        <div className="p-2 text-2xl font-black text-white/50">
-                            {totalPlatosMes}
-                        </div>
+                        <div className="p-3 border-r-2 border-white leading-tight">Platos <br/>Vendidos</div>
+                        <div className="p-2 border-r-2 border-white text-xl font-black text-[#96be8c]">{totalPlatosDia}</div>
+                        <div className="p-2 text-xl font-black text-white/50">{totalPlatosMes}</div>
                     </div>
 
-                    {/* Fila Total Pedidos */}
-                    <div className="grid grid-cols-3 items-center">
-                        <div className="p-3 border-r-2 border-white leading-tight">Total <br/><span className="text-[8px] text-gray-400">de pedidos</span></div>
-                        <div className="p-2 border-r-2 border-white text-2xl font-black text-[#96be8c]">
-                            {totalPedidosDia}
-                        </div>
-                        <div className="p-2 text-2xl font-black text-white/50">
-                            {totalPedidosMes}
-                        </div>
+                    {/* Fila Total Dinero */}
+                    <div className="grid grid-cols-3 items-center bg-white/10">
+                        <div className="p-3 border-r-2 border-white leading-tight">Total <br/>Dinero (BS)</div>
+                        <div className="p-2 border-r-2 border-white text-xl font-black text-[#96be8c]">{dineroDia}</div>
+                        <div className="p-2 text-xl font-black text-white/50">{dineroMes}</div>
                     </div>
                 </div>
+
+                <p className="mt-6 text-[9px] text-gray-500 uppercase font-black tracking-widest">
+                    * Calculado en base a 30 BS por plato registrado
+                </p>
             </motion.div>
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

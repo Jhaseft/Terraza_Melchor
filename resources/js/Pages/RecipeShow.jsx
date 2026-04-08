@@ -23,6 +23,7 @@ export default function RecipeShow({ recipe }) {
                         {recipe.nombre}
                     </h1>
                 </div>
+                
             </div>
 
             <div className="p-6 max-w-2xl mx-auto space-y-8">
@@ -32,13 +33,22 @@ export default function RecipeShow({ recipe }) {
                     <h2 className="text-[12px] font-black uppercase text-gray-400 tracking-widest mb-4 flex items-center gap-2">
                         <span className="w-8 h-[2px] bg-[#ff6b00]"></span> Ingredientes
                     </h2>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-3">
                         {recipe.ingredients.map((ing) => (
-                            <div key={ing.id} className="bg-[#3a3a44] p-4 rounded-xl flex justify-between items-center border border-white/5">
-                                <span className="font-bold uppercase text-sm">{ing.nombre}</span>
-                                <span className="text-[#96be8c] font-black">
-                                    {Number(ing.pivot.peso)} {ing.pivot.unidad}
-                                </span>
+                            <div key={ing.id} className="bg-[#3a3a44] p-4 rounded-xl flex justify-between items-center border border-white/5 transition-all">
+                                <span className="font-bold uppercase text-sm tracking-tight">{ing.nombre}</span>
+                                
+                                <div className="text-right">
+                                    {/* PESO / CANTIDAD */}
+                                    <p className="text-[#96be8c] font-black text-xs">
+                                        {Number(ing.pivot.peso)} {ing.pivot.unidad}
+                                    </p>
+                                    
+                                    {/* COSTO INDIVIDUAL DEBAJO DEL PESO */}
+                                    <p className="text-[10px] text-gray-400 font-bold mt-0.5">
+                                        {parseFloat(ing.pivot.costo_unitario || 0).toFixed(2)} BOB
+                                    </p>
+                                </div>
                             </div>
                         ))}
                     </div>

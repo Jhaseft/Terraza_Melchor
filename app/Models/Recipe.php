@@ -14,7 +14,7 @@ class Recipe extends Model
     public function ingredients(): BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
-                    ->withPivot('peso', 'unidad') // Traemos los datos de la tabla intermedia
+                    ->withPivot('id', 'peso', 'unidad', 'costo_unitario')
                     ->withTimestamps();
     }
 

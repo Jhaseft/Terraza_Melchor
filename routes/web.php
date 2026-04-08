@@ -54,6 +54,7 @@ Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index'
 Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
 Route::get('/recipes/{id}', [RecipeController::class, 'show'])->name('recipes.show');
 Route::get('/recipes/{id}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
+Route::post('/recipes/update-costs', [RecipeController::class, 'updateCosts'])->name('recipes.updateCosts');
 Route::post('/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
 
 
