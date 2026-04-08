@@ -10,6 +10,7 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
     const { data, setData, post, processing, reset, errors } = useForm({
         nombre: '',
         categoria: '',
+        porciones_base: 1,
         foto_principal: null,
         ingredientes: [], 
         pasos: [{ descripcion: '', foto_paso: null }]
@@ -77,6 +78,8 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
     const incompleto = 
         !data.nombre.trim() || 
         !data.categoria.trim() || 
+        !data.porciones_base ||
+        Number(data.porciones_base) <= 0 ||
         data.ingredientes.length === 0 || 
         data.ingredientes.some(ing => !ing.peso || Number(ing.peso) <= 0) || 
         data.pasos.some(p => !p.descripcion.trim());

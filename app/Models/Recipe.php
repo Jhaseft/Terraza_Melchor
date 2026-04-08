@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Recipe extends Model
 {
-    protected $fillable = ['categoria', 'nombre', 'foto_principal'];
+    protected $fillable = ['categoria', 'nombre', 'porciones_base', 'foto_principal'];
 
     // Relación con Ingredientes (Muchos a Muchos)
     public function ingredients(): BelongsToMany

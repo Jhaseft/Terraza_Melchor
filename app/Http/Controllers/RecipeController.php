@@ -32,10 +32,10 @@ class RecipeController extends Controller
 
     public function store(Request $request)
     {
-        set_time_limit(300);
         $request->validate([
             'nombre' => 'required|string|max:255',
             'categoria' => 'required|string',
+            'porciones_base' => 'required|integer|min:1',
             'foto_principal' => 'nullable|image|max:2048',
             'ingredientes' => 'required|array|min:1',
             'pasos' => 'required|array|min:1',
@@ -62,6 +62,7 @@ class RecipeController extends Controller
             $recipe = Recipe::create([
                 'nombre' => strtoupper($request->nombre),
                 'categoria' => strtoupper($request->categoria),
+                'porciones_base' => $request->porciones_base,
                 'foto_principal' => $urlPrincipal,
             ]);
 

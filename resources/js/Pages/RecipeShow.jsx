@@ -1,7 +1,10 @@
+import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 
 export default function RecipeShow({ recipe }) {
+    const [porcionesDeseadas, setPorcionesDeseadas] = useState(recipe.porciones_base || 1);
+    const factor = porcionesDeseadas / (recipe.porciones_base || 1);
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans pb-12">
             <Head title={`Receta: ${recipe.nombre}`} />
@@ -27,30 +30,89 @@ export default function RecipeShow({ recipe }) {
             </div>
 
             <div className="p-6 max-w-2xl mx-auto space-y-8">
-                
+                <motion.section 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-[#1a1a1a] p-6 rounded-[2rem] border border-[#ff6b00]/30 shadow-xl text-center"
+                >
+                    <span className="text-[10px] font-black uppercase text-[#ff6b00] tracking-widest block mb-4">
+                        Ajustar Cantidades
+                    </span>
+                    
+                    <div className="flex items-center justify-center gap-6">
+                        {/* Botón Menos */}
+                        <button 
+                            type="button"
+                            onClick={() => setPorcionesDeseadas(Math.max(1, porcionesDeseadas - 1))}
+                            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl font-bold hover:bg-[#ff6b00] transition-all active:scale-90"
+                        > – </button>
+                        
+                        <div className="flex flex-col items-center">
+                            {/* INPUT PARA ESCRIBIR DIRECTO */}
+                            <input 
+                                type="number"
+                                min="1"
+                                value={porcionesDeseadas === 0 ? '' : porcionesDeseadas}
+                                onChange={(e) => {
+                                    const valor = e.target.value;
+                                    if (valor === "") {
+                                        setPorcionesDeseadas(0);
+                                    } else {
+                                        setPorcionesDeseadas(parseInt(valor));
+                                    }
+                                }}
+                                onBlur={() => {
+                                    if (!porcionesDeseadas || porcionesDeseadas < 1) {
+                                        setPorcionesDeseadas(1);
+                                    }
+                                }}
+                                className="w-24 bg-transparent text-5xl font-black text-center outline-none border-b-2 border-transparent focus:border-[#ff6b00] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest mt-1">Porciones</span>
+                        </div>
+
+                        {/* Botón Más */}
+                        <button 
+                            type="button"
+                            onClick={() => setPorcionesDeseadas(porcionesDeseadas + 1)}
+                            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl font-bold hover:bg-[#ff6b00] transition-all active:scale-90"
+                        > + </button>
+                    </div>
+                    
+                    <p className="text-[10px] text-gray-500 italic mt-4 uppercase font-bold tracking-tight">
+                        Receta original para {recipe.porciones_base} {recipe.porciones_base === 1 ? 'persona' : 'personas'}
+                    </p>
+                </motion.section>
+
+
                 {/* SECCIÓN INGREDIENTES */}
                 <section>
                     <h2 className="text-[12px] font-black uppercase text-gray-400 tracking-widest mb-4 flex items-center gap-2">
                         <span className="w-8 h-[2px] bg-[#ff6b00]"></span> Ingredientes
                     </h2>
                     <div className="grid grid-cols-1 gap-3">
-                        {recipe.ingredients.map((ing) => (
-                            <div key={ing.id} className="bg-[#3a3a44] p-4 rounded-xl flex justify-between items-center border border-white/5 transition-all">
-                                <span className="font-bold uppercase text-sm tracking-tight">{ing.nombre}</span>
-                                
-                                <div className="text-right">
-                                    {/* PESO / CANTIDAD */}
-                                    <p className="text-[#96be8c] font-black text-[18px]">
-                                        {Number(ing.pivot.peso)} {ing.pivot.unidad}
-                                    </p>
+                        {recipe.ingredients.map((ing) => {
+                            const factor = porcionesDeseadas / (recipe.porciones_base || 1);
+                            return (
+                                <div key={ing.id} className="bg-[#3a3a44] p-4 rounded-xl flex justify-between items-center border border-white/5">
+                                    <span className="font-bold uppercase text-sm tracking-tight">{ing.nombre}</span>
                                     
-                                    {/* COSTO INDIVIDUAL */}
-                                    <p className="text-[16px] text-gray-400 font-bold mt-0.5">
-                                        {parseFloat(ing.pivot.costo_unitario || 0).toFixed(2)} BOB
-                                    </p>
+                                    <div className="text-right">
+                                        {/* PESO ESCALADO */}
+                                        <p className="text-[#96be8c] font-black text-[18px]">
+                                            {/* Multiplicamos el peso por el factor */}
+                                            {(Number(ing.pivot.peso) * factor).toFixed(1).replace('.0', '')} {ing.pivot.unidad}
+                                        </p>
+                                        
+                                        {/* COSTO ESCALADO */}
+                                        <p className="text-[14px] text-gray-400 font-bold mt-0.5">
+                                            {/* Multiplicamos el costo por el factor */}
+                                            {(parseFloat(ing.pivot.costo_unitario || 0) * factor).toFixed(2)} BOB
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
 
