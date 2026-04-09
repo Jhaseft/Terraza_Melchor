@@ -62,19 +62,32 @@ export default function IngredientSearch({ data, agregarIngrediente, actualizarI
 
                         {/* FILA INFERIOR: Inputs de Cantidad y Unidad */}
                         <div className="flex gap-2 items-center">
-                            <div className="flex-1 flex items-center bg-black rounded-xl border border-white/5 overflow-hidden">
-                                <input 
-                                    type="number" 
-                                    value={ing.peso} 
-                                    onChange={e => actualizarIngrediente(idx, 'peso', e.target.value)}
-                                    className={`w-full bg-transparent border-none p-3 text-xs text-center font-bold text-[#96be8c] outline-none focus:ring-0 ${!ing.peso ? 'placeholder:text-red-500/50' : 'placeholder:text-gray-700'}`} 
-                                    placeholder="0.00" 
-                                />
-                            </div>
+                            {ing.unidad !== 'al gusto' ? (
+                                <div className="flex-1 flex items-center bg-black rounded-xl border border-white/5 overflow-hidden">
+                                    <input 
+                                        type="number" 
+                                        disabled={ing.unidad === 'a gusto'}
+                                        value={ing.peso} 
+                                        onChange={e => actualizarIngrediente(idx, 'peso', e.target.value)}
+                                        className={`w-full bg-transparent border-none p-3 text-xs text-center font-bold text-[#96be8c] outline-none focus:ring-0 ${!ing.peso ? 'placeholder:text-red-500/50' : 'placeholder:text-gray-700'}`} 
+                                        placeholder="0.00" 
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center bg-white/5 rounded-xl border border-white/10 p-3">
+                                    <span className="text-[10px] font-black uppercase text-[#96be8c]">Opcional</span>
+                                </div>
+                            )}
                             
                             <select 
                                 value={ing.unidad} 
-                                onChange={e => actualizarIngrediente(idx, 'unidad', e.target.value)}
+                                onChange={e => {
+                                    const nuevaUnidad = e.target.value;
+                                    actualizarIngrediente(idx, 'unidad', nuevaUnidad);
+                                    if (nuevaUnidad === 'a gusto') {
+                                        actualizarIngrediente(idx, 'peso', '0');
+                                    }
+                                }}
                                 className="flex-1 bg-black border border-white/5 p-3 rounded-xl text-[10px] font-black uppercase text-gray-300 outline-none focus:border-[#96be8c]"
                             >
                                 <option value="gr">GRAMOS</option>
@@ -82,7 +95,9 @@ export default function IngredientSearch({ data, agregarIngrediente, actualizarI
                                 <option value="ml">MILILITROS</option>
                                 <option value="l">LITROS</option>
                                 <option value="unidad(es)">UNIDADES</option>
-                                <option value="tazas">TAZAS</option>
+                                <option value="taza(s)">TAZAS</option>
+                                <option value="cuchara(s)">CUCHARAS</option>
+                                <option value="a gusto">A GUSTO</option>
                             </select>
                         </div>
                     </motion.div>

@@ -2,15 +2,55 @@ import React from 'react';
 import { Trash2, Camera, X } from 'lucide-react'; // Importamos iconos nuevos
 
 export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, quitarPaso }) {
-    
-    const manejarCambioFoto = (idx, archivo) => {
+    const procesarImagen = (file, targetWidth = 800) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const escala = targetWidth / img.width;
+                const targetHeight = img.height * escala;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                URL.revokeObjectURL(img.src);
+
+                canvas.toBlob((blob) => {
+                    const archivoProcesado = new File([blob], file.name, {
+                        type: 'image/webp',
+                        lastModified: Date.now(),
+                    });
+                    resolve(archivoProcesado);
+                }, 'image/webp', 0.8);
+            };
+
+            img.onerror = () => {
+                console.error("Error cargando la imagen para procesar");
+                resolve(file);
+            };
+        });
+    };
+
+    const manejarCambioFoto = async (idx, archivo) => {
         if (!archivo) return;
-        actualizarPaso(idx, pasos[idx].descripcion, archivo);
+
+        const archivoOptimizado = await procesarImagen(archivo, 800);
+
+        actualizarPaso(idx, pasos[idx].descripcion, archivoOptimizado);
     };
 
     const eliminarFoto = (idx) => {
         actualizarPaso(idx, pasos[idx].descripcion, null);
     };
+
+    
 
     return (
         <div className="space-y-4">

@@ -3,6 +3,34 @@ import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 
 export default function RecipeShow({ recipe }) {
+    const formatearCantidad = (cantidad, unidad) => {
+        const unidadesConFraccion = ['taza(s)', 'cuchara(s)', 'unidad(es)'];
+        
+        if (!unidadesConFraccion.includes(unidad.toLowerCase()) || Number.isInteger(cantidad)) {
+            return parseFloat(cantidad.toFixed(2));
+        }
+
+        const fracciones = [
+            { dec: 0.25, frac: '1/4' },
+            { dec: 0.5,  frac: '1/2' },
+            { dec: 0.75, frac: '3/4' },
+            { dec: 0.33, frac: '1/3' },
+            { dec: 0.66, frac: '2/3' },
+        ];
+
+        const decimal = cantidad % 1;
+        const entero = Math.floor(cantidad);
+        
+        // Buscamos si el decimal coincide con alguna fracción conocida
+        const encontrado = fracciones.find(f => Math.abs(f.dec - decimal) < 0.01);
+
+        if (encontrado) {
+            return entero > 0 ? `${entero} ${encontrado.frac}` : encontrado.frac;
+        }
+
+        return parseFloat(cantidad.toFixed(2));
+    };
+
     const [porcionesDeseadas, setPorcionesDeseadas] = useState(recipe.porciones_base || 1);
     const factor = porcionesDeseadas / (recipe.porciones_base || 1);
     return (
@@ -61,6 +89,7 @@ export default function RecipeShow({ recipe }) {
                                         setPorcionesDeseadas(parseInt(valor));
                                     }
                                 }}
+                                onWheel={() => document.activeElement instanceof HTMLElement && document.activeElement.blur()}
                                 onBlur={() => {
                                     if (!porcionesDeseadas || porcionesDeseadas < 1) {
                                         setPorcionesDeseadas(1);
@@ -100,7 +129,10 @@ export default function RecipeShow({ recipe }) {
                                     <div className="text-right">
                                         <p className="text-[#96be8c] font-black text-[18px]">
                                             {/* Multiplicamos el peso por el factor */}
-                                            {parseFloat(pesoCalculado.toFixed(2))} {ing.pivot.unidad}
+                                            {ing.pivot.unidad === 'a gusto' 
+                                                ? 'A GUSTO' 
+                                                : `${formatearCantidad(pesoCalculado, ing.pivot.unidad)} ${ing.pivot.unidad}`
+                                            }
                                         </p>
                                         
                                         {/* COSTO ESCALADO */}
@@ -137,14 +169,20 @@ export default function RecipeShow({ recipe }) {
                                     {/* FOTO DEL PASO (Condicional) */}
                                     {step.foto_paso && (
                                         <motion.div 
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+                                            initial={{ opacity: 0, y: 15 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            
+                                            className="relative w-full aspect-video rounded-[2rem] overflow-hidden border border-white/5 bg-[#121214] shadow-2xl group/img"
                                         >
+                                            {/* Gradiente sutil para profundidad */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10 opacity-60 group-hover/img:opacity-20 transition-opacity duration-500" />
+                                            
                                             <img 
                                                 src={step.foto_paso} 
                                                 alt={`Paso ${step.numero_paso}`}
-                                                className="w-full h-auto max-h-64 object-cover"
+                                                className="w-full h-full object-contain"
+                                                style={{ imageRendering: 'auto' }}
                                             />
                                         </motion.div>
                                     )}

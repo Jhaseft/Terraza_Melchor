@@ -235,6 +235,7 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
                                 className="w-full bg-[#e0e0e0] border-none rounded-lg p-4 text-black text-center text-xl font-bold"
                                 value={data.cantidad}
                                 onChange={e => setData('cantidad', e.target.value)}
+                                onWheel={() => document.activeElement instanceof HTMLElement && document.activeElement.blur()}
                             />
                         </div>
 

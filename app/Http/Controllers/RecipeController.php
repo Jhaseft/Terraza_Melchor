@@ -90,10 +90,10 @@ class RecipeController extends Controller
                         [
                             'folder' => 'terraza/pasos',
                             'transformation' => [
-                                'width' => 200, 
-                                'height' => 200, 
                                 'crop' => 'fill', 
-                                'format' => 'webp'
+                                'gravity' => 'center',
+                                'format' => 'webp',
+                                'quality' => 'auto'
                             ]
                         ]
                     );

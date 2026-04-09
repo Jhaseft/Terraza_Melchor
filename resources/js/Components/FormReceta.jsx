@@ -81,7 +81,9 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
         !data.porciones_base ||
         Number(data.porciones_base) <= 0 ||
         data.ingredientes.length === 0 || 
-        data.ingredientes.some(ing => !ing.peso || Number(ing.peso) <= 0) || 
+        data.ingredientes.some(ing => 
+        ing.unidad !== 'a gusto' && (!ing.peso || Number(ing.peso) <= 0)
+        ) ||
         data.pasos.some(p => !p.descripcion.trim());
 
     const submit = (e) => {
