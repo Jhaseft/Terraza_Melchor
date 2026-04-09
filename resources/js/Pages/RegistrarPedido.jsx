@@ -1,4 +1,4 @@
-import { useForm, Link } from "@inertiajs/react";
+import { useForm, Head, Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState,useEffect } from "react";
 
@@ -86,6 +86,7 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans flex items-center justify-center p-4">
+            <Head title="Registrar Pedido - Terraza Melchor" />
             <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -120,7 +121,6 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
 
                                 {/* INPUT: Estirado para cubrir el botón pero sin afectar el diseño */}
                                 <input 
-                                    type="date" 
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     value={data.fecha}
                                     onChange={e => setData('fecha', e.target.value)}

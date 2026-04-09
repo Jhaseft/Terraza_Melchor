@@ -59,7 +59,7 @@ export default function VerPedidos({ pedidos }) {
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans p-4 flex justify-center">
-            <Head title="Informe de Pedidos" />
+            <Head title="Ver pedidos - Terraza Melchor" />
 
             <motion.div 
                 initial={{ opacity: 0 }}

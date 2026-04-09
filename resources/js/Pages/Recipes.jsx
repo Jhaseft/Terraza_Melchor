@@ -49,7 +49,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans pb-20">
-            <Head title="Fichas Técnicas" />
+            <Head title="Fichas Técnicas - Terraza Melchor" />
 
             {/* HEADER CON TABS */}
             <div className="bg-[#3a3a44] pt-8 pb-0 px-6 rounded-b-[2rem] shadow-xl mb-6">

@@ -34,12 +34,20 @@ export default function RecipeCard({ recipe, onEdit, onDelete }) {
                     </h3>
                     
                     {/* INDICADORES: Ingredientes y Costo */}
-                    <div className="flex items-center gap-3 mt-2">
-                        <p className="text-[10px] text-gray-400 flex items-center gap-1">
-                            <span className="opacity-50">📦</span> {recipe.ingredients?.length || 0} ing.
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        {/* Cantidad de ingredientes */}
+                        <p className="text-[12px] text-gray-400 flex items-center gap-1">
+                            <span className="text-[16px]">📦</span> {recipe.ingredients?.length || 0} ing.
                         </p>
-                        <p className={`text-[10px] font-bold flex items-center gap-0.5 ${costoTotal > 0 ? 'text-[#96be8c]' : 'text-gray-500'}`}>
-                            <DollarSign size={10} /> {costoTotal.toFixed(2)} BOB
+
+                        {/* NUEVO: PORCIONES BASE */}
+                        <p className="text-[12px] text-gray-400 flex items-center gap-1 border-l border-white/10 pl-3">
+                            {recipe.porciones_base || 1} {recipe.porciones_base === 1 ? 'porción' : 'porciones'}
+                        </p>
+
+                        {/* COSTO TOTAL */}
+                        <p className={`text-[12px] text-gray-400 flex items-center gap-0.5 border-l border-white/10 pl-3 ${costoTotal > 0 ? 'text-[#96be8c]' : 'text-gray-500'}`}>
+                            <span className="text-[16px]">$</span> {costoTotal.toFixed(2)} BOB
                         </p>
                     </div>
                 </div>

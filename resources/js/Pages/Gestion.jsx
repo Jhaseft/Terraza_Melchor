@@ -13,7 +13,7 @@ export default function Gestion() {
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans flex items-center justify-center p-4">
-            <Head title="Gestión - Terraza Melchor" />
+            <Head title="Gestion - Terraza Melchor" />
 
             {/* Contenedor Principal con ancho máximo de móvil */}
             <motion.div 

@@ -78,7 +78,7 @@ export default function Egresos({ expenses, totales }) {
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white p-6 font-sans flex flex-col items-center">
-            <Head title="Registrar Egresos" />
+            <Head title="Registrar Egresos - Terraza Melchor" />
             
             {/* Añadimos relative y pt-16 para dar espacio al botón arriba */}
             <div className="w-full max-w-md relative pt-16"> 

@@ -32,6 +32,23 @@ export default function FormHeader({ data, setData, errors, categoriasExistentes
                     ))}
                 </datalist>
             </div>
+
+            {/* porciones base */}
+            <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">¿Para cuántas personas rinde esta receta?</label>
+                <div className="relative">
+                    <input 
+                        type="number"
+                        min="1"
+                        value={data.porciones_base}
+                        onChange={e => setData('porciones_base', e.target.value)}
+                        className="w-full bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-sm font-bold uppercase focus:border-[#ff6b00] outline-none transition-all"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] font-black text-gray-400 uppercase">PERSONAS</span>
+                </div>
+                {errors.porciones_base && <span className="text-red-500 text-[10px] ml-2">{errors.porciones_base}</span>}
+            </div>
+
             {/* para la foto de la receta */}
             <div className="flex flex-col gap-2 mt-4 md:col-span-2">
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Foto del Plato (Opcional)</label>

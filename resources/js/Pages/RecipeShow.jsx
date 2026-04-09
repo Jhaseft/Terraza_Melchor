@@ -35,7 +35,7 @@ export default function RecipeShow({ recipe }) {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-[#1a1a1a] p-6 rounded-[2rem] border border-[#ff6b00]/30 shadow-xl text-center"
                 >
-                    <span className="text-[10px] font-black uppercase text-[#ff6b00] tracking-widest block mb-4">
+                    <span className="text-[12px] font-black uppercase text-[#ff6b00] tracking-widest block mb-4">
                         Ajustar Cantidades
                     </span>
                     
@@ -68,7 +68,7 @@ export default function RecipeShow({ recipe }) {
                                 }}
                                 className="w-24 bg-transparent text-5xl font-black text-center outline-none border-b-2 border-transparent focus:border-[#ff6b00] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
-                            <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest mt-1">Porciones</span>
+                            <span className="text-[11px] text-gray-500 font-black uppercase tracking-widest mt-1">Porciones</span>
                         </div>
 
                         {/* Botón Más */}
@@ -79,7 +79,7 @@ export default function RecipeShow({ recipe }) {
                         > + </button>
                     </div>
                     
-                    <p className="text-[10px] text-gray-500 italic mt-4 uppercase font-bold tracking-tight">
+                    <p className="text-[14px] text-gray-400 mt-4 uppercase font-bold tracking-tight">
                         Receta original para {recipe.porciones_base} {recipe.porciones_base === 1 ? 'persona' : 'personas'}
                     </p>
                 </motion.section>
@@ -92,16 +92,15 @@ export default function RecipeShow({ recipe }) {
                     </h2>
                     <div className="grid grid-cols-1 gap-3">
                         {recipe.ingredients.map((ing) => {
-                            const factor = porcionesDeseadas / (recipe.porciones_base || 1);
+                            const pesoCalculado = Number(ing.pivot.peso) * factor;
                             return (
                                 <div key={ing.id} className="bg-[#3a3a44] p-4 rounded-xl flex justify-between items-center border border-white/5">
                                     <span className="font-bold uppercase text-sm tracking-tight">{ing.nombre}</span>
                                     
                                     <div className="text-right">
-                                        {/* PESO ESCALADO */}
                                         <p className="text-[#96be8c] font-black text-[18px]">
                                             {/* Multiplicamos el peso por el factor */}
-                                            {(Number(ing.pivot.peso) * factor).toFixed(1).replace('.0', '')} {ing.pivot.unidad}
+                                            {parseFloat(pesoCalculado.toFixed(2))} {ing.pivot.unidad}
                                         </p>
                                         
                                         {/* COSTO ESCALADO */}
