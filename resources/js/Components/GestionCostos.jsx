@@ -5,6 +5,15 @@ import { router } from '@inertiajs/react';
 export default function GestionCostos({ recipes = [], onFinish}) {
     const [recetaSeleccionada, setRecetaSeleccionada] = useState(null);
 
+    const UNIDADES_LARGAS = {
+        'gr': 'gramos',
+        'kg': 'kilogramos',
+        'taz': 'tazas',
+        'unid': 'unidades',
+        'ml': 'mililitros',
+        'lt': 'litros'
+    };
+
     // Función para manejar el cambio de precio
     const handlePrecioChange = (ingredienteId, valor) => {
         setPrecios({
@@ -87,11 +96,12 @@ export default function GestionCostos({ recipes = [], onFinish}) {
                     </thead>
                     <tbody className="text-[12px] font-bold">
                         {recetaSeleccionada.ingredients?.map((ing) => {
+                            const unidadCompleta = UNIDADES_LARGAS[ing.pivot.unidad] || ing.pivot.unidad;
                             return (
                                 <tr key={ing.id} className="border-b border-white/5">
                                     <td className="p-4 uppercase">{ing.nombre}</td>
                                     <td className="p-4 text-center text-gray-400">
-                                        {ing.pivot.peso} {ing.pivot.unidad}
+                                        {ing.pivot.peso} {unidadCompleta}
                                     </td>
                                     <td className="p-4 text-right">
                                         <input 

@@ -51,17 +51,39 @@ export default function FormHeader({ data, setData, errors, categoriasExistentes
 
             {/* para la foto de la receta */}
             <div className="flex flex-col gap-2 mt-4 md:col-span-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Foto del Plato (Opcional)</label>
-                <div className="flex items-center gap-4 bg-[#1a1a1a] p-4 rounded-2xl border border-white/10">
-                    <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={e => setData('foto_principal', e.target.files[0])}
-                        className="text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-[#ff6b00] file:text-white hover:file:bg-[#e66000] cursor-pointer"
-                    />
-                    {data.foto_principal && (
-                        <span className="text-[10px] text-[#96be8c] font-bold uppercase italic">Imagen lista</span>
-                    )}
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">
+                    Foto del Plato (Opcional)
+                </label>
+                
+                <div className="bg-[#1a1a1a] p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center gap-4">
+                    {/* BOTÓN PERSONALIZADO */}
+                    <label className="cursor-pointer bg-[#ff6b00] hover:bg-[#e66000] text-white text-[10px] font-black uppercase py-3 px-6 rounded-full transition-all active:scale-95 text-center w-full sm:w-auto">
+                        {data.foto_principal ? 'Cambiar Foto' : 'Seleccionar Archivo'}
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={e => setData('foto_principal', e.target.files[0])}
+                            className="hidden" // Ocultamos el input real
+                        />
+                    </label>
+
+                    {/* NOMBRE DEL ARCHIVO O ESTADO */}
+                    <div className="flex flex-col items-center sm:items-start overflow-hidden w-full">
+                        {data.foto_principal ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-[#96be8c] font-bold uppercase">
+                                    Imagen Lista:
+                                </span>
+                                <span className="text-[10px] text-gray-400 truncate max-w-[150px]">
+                                    {data.foto_principal.name}
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] text-gray-600 uppercase italic">
+                                Ningún archivo seleccionado
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

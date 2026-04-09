@@ -15,16 +15,24 @@ export default function IngredientSearch({ data, agregarIngrediente, actualizarI
         <div className="bg-black/20 p-6 rounded-[2.5rem] border border-white/5">
             <h3 className="text-[10px] font-black uppercase text-[#96be8c] mb-4 tracking-[0.2em]">Ingredientes</h3>
 
-            <div className="flex items-center bg-[#1a1a1a] border border-white/10 rounded-2xl p-1 mb-6 focus-within:border-[#96be8c]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-[#1a1a1a] border border-white/10 rounded-2xl p-1 mb-6 focus-within:border-[#96be8c] transition-all gap-1">
                 <input 
                     list="memoria-ingredientes"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                     placeholder="BUSCAR O ESCRIBIR NUEVO..."
-                    className="flex-1 bg-transparent border-none outline-none p-3 text-xs font-bold uppercase text-white placeholder:text-gray-600"
+                    className="flex-1 bg-transparent border-none outline-none p-4 sm:p-3 text-[11px] sm:text-xs font-bold uppercase text-white placeholder:text-gray-600 min-w-0"
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), manejarAñadir())}
                 />
-                <button type="button" onClick={manejarAñadir} className="px-4 py-2 bg-[#96be8c] text-black rounded-xl text-[9px] font-black uppercase">Añadir</button>
+                
+                <button 
+                    type="button" 
+                    onClick={manejarAñadir} 
+                    className="px-6 py-4 sm:py-2 bg-[#96be8c] hover:bg-[#85aa7b] text-black rounded-xl sm:rounded-xl text-[10px] font-black uppercase transition-all active:scale-95"
+                >
+                    Añadir
+                </button>
+
                 <datalist id="memoria-ingredientes">
                     {catalogo.map(ing => <option key={ing.id} value={ing.nombre.toUpperCase()} />)}
                 </datalist>
@@ -73,7 +81,8 @@ export default function IngredientSearch({ data, agregarIngrediente, actualizarI
                                 <option value="kg">KILOS</option>
                                 <option value="ml">MILILITROS</option>
                                 <option value="l">LITROS</option>
-                                <option value="unid">UNIDADES</option>
+                                <option value="unidad(es)">UNIDADES</option>
+                                <option value="tazas">TAZAS</option>
                             </select>
                         </div>
                     </motion.div>

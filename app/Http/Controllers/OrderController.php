@@ -71,6 +71,7 @@ class OrderController extends Controller
                     'nombre_cliente', 
                     'no_platos', 
                     'qr', 
+                    'metodo_entrega',
                     'observaciones'
                 )
                 ->orderBy('fecha', 'desc')
@@ -85,6 +86,7 @@ class OrderController extends Controller
                         'nombre_cliente' => $order->nombre_cliente,
                         'no_platos'      => $order->no_platos,
                         'qr'             => $order->qr,
+                        'metodo_entrega' => $order->metodo_entrega,
                         'observaciones'  => $order->observaciones,
                     ];
                 })

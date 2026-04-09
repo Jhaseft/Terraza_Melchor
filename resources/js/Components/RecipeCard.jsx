@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import { Pencil, Trash2, DollarSign } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+
 
 export default function RecipeCard({ recipe, onEdit, onDelete }) {
     // Calculamos el costo total sumando lo que hay en el pivot de cada ingrediente
@@ -57,21 +58,18 @@ export default function RecipeCard({ recipe, onEdit, onDelete }) {
             <div className="flex gap-2 pr-2">
                 <button 
                     type="button"
-                    onClick={() => onEdit(recipe)}
-                    className="p-3 bg-white/5 hover:bg-[#ff6b00]/20 text-gray-400 hover:text-[#ff6b00] rounded-xl transition-all"
-                    title="Editar ficha"
-                >
-                    <Pencil size={16} />
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => onDelete(recipe.id, recipe.nombre)}
-                    className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // IMPORTANTE: Para que no se abra la receta al hacer clic aquí
+                        onDelete(recipe.id, recipe.nombre);
+                    }}
+                    className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all shadow-inner"
                     title="Eliminar"
                 >
                     <Trash2 size={16} />
                 </button>
             </div>
+
         </div>
     );
 }

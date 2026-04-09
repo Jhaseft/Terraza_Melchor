@@ -89,7 +89,7 @@ export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, q
             <button 
                 type="button" 
                 onClick={agregarPaso} 
-                className="w-full py-4 border-2 border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-500 hover:text-white hover:border-[#ff6b00] bg-white/5 transition-all active:scale-[0.98]"
+                className="w-full py-4 border-2 border-white/20 rounded-2xl text-[12px] font-black uppercase text-white bg-white/5 transition-all active:scale-[0.98]"
             >
                 + Agregar otro paso
             </button>

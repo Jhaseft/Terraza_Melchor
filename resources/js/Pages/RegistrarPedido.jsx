@@ -1,11 +1,19 @@
 import { useForm, Head, Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState,useEffect } from "react";
+import ModalDinamico from "@/Components/ModalDinamico";
 
 export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
-    
-    const [conteoPersonal, setConteoPersonal] = useState(0);
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        titulo: '',
+        mensaje: '',
+        tipo: 'info',
+        onConfirm: null
+    });
 
+    const [conteoPersonal, setConteoPersonal] = useState(0);
+    
     const getFechaBolivia = () => {
         return new Date().toLocaleDateString('en-CA');
     };
@@ -33,8 +41,8 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
         nombre_plato: '',
         cliente: '',
         cantidad: '',
-        metodo_entrega: 'R', 
-        es_qr: false, //la funcion para de tooogle de qr que añadiremos mas tarde
+        metodo_entrega: '',
+        es_qr: false, 
         nota: ''
     });
 
@@ -42,21 +50,46 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
     const submit = (e) => {
         e.preventDefault();
 
-        // VALIDACIÓN: Cliente y Plato no vacíos
         if (!data.nombre_plato.trim() || !data.cliente.trim()) {
-            alert("Por favor, llena el nombre del plato y del cliente.");
+            setModalConfig({
+                isOpen: true,
+                titulo: "Datos Incompletos",
+                mensaje: "El nombre del cliente y del plato son obligatorios para registrar el pedido.",
+                tipo: "info",
+                onConfirm: null
+            });
             return;
         }
 
-        // VALIDACIÓN: Cantidad mayor a 0 
         if (!data.cantidad || Number(data.cantidad) <= 0) {
-            alert("La cantidad de platos debe ser mayor a 0.");
+            setModalConfig({
+                isOpen: true,
+                titulo: "Cantidad Inválida",
+                mensaje: "La cantidad de platos debe ser un número mayor a 0.",
+                tipo: "info",
+                onConfirm: null
+            });
             return;
         }
 
+        if (!data.metodo_entrega) {
+            setModalConfig({
+                isOpen: true,
+                titulo: "Falta Selección",
+                mensaje: "Por favor, selecciona si el pedido es para Recojo o por Moto antes de guardar.",
+                tipo: "info",
+                onConfirm: null 
+            });
+            return;
+        }
+
+        ejecutarEnvio();
+    };
+
+    // Separamos la lógica del POST para que sea más limpio llamarla desde el onConfirm
+    const ejecutarEnvio = () => {
         post(route('orders.store'), {
             onSuccess: () => {
-                // calcular el numero de platos vendidos
                 const nuevoTotal = Number(conteoPersonal) + Number(data.cantidad);
                 const hoy = getFechaBolivia();
 
@@ -65,15 +98,15 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
                     fecha: hoy
                 }));
 
-                //Actualizamos la vista
                 setConteoPersonal(nuevoTotal);
 
-                //Limpiamos el formulario (lo que ya tenías)
                 setData(prevData => ({
                     ...prevData,
                     cliente: '',
                     nota: '',
                     cantidad: '',
+                    es_qr: false,
+                    metodo_entrega: '', // También reseteamos el método
                 }));
             },
         });
@@ -278,6 +311,14 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
                     </div>
                 </form>
             </motion.div>
+            <ModalDinamico 
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+                onConfirm={modalConfig.onConfirm}
+                titulo={modalConfig.titulo}
+                mensaje={modalConfig.mensaje}
+                tipo={modalConfig.tipo}
+            />
         </div>
     );
 }

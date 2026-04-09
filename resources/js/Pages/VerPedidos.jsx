@@ -146,7 +146,7 @@ export default function VerPedidos({ pedidos }) {
                                             <td className="p-3 uppercase border-r border-white/40 min-w-[200px]">{pedido.nombre_plato || '---'}</td>
                                             <td className="p-3 text-center border-r border-white/40">{pedido.no_platos}</td>
                                             <td className="p-3 text-center border-r border-white/40">{pedido.qr ? "SÍ" : "NO"}</td>
-                                            <td className="p-3 text-center border-r border-white/40">{pedido.metodo_entrega === 'M' ? "🏍️" : "🏪"}</td>
+                                            <td className="p-3 text-center border-r border-white/40">{pedido.metodo_entrega === 'M' ? "M" : "R"}</td>
                                             <td className="p-3 min-w-[250px]">{pedido.observaciones || "---"}</td>
                                         </tr>
                                     ))

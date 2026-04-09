@@ -4,8 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import FormReceta from '@/Components/FormReceta';
 import GestionCostos from '@/Components/GestionCostos';
 import RecipeCard from '@/Components/RecipeCard';
+import ModalDinamico from "@/Components/ModalDinamico";
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        titulo: '',
+        mensaje: '',
+        tipo: 'info',
+        onConfirm: null
+    });
+    const cerrarModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
+    
     const [tabActiva, setTabActiva] = useState('ver');
     const [listaRecetas, setListaRecetas] = useState(recipes);
     const [recetaAEditar, setRecetaAEditar] = useState(null);
@@ -16,30 +26,27 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
     }, [recipes]);
 
     const eliminarReceta = (id, nombre) => {
-        if (!id) {
-            console.error("No se pudo obtener el ID de la receta");
-            return;
-        }
+        setModalConfig({
+            isOpen: true,
+            titulo: "Eliminar Receta",
+            mensaje: `¿Estás seguro de eliminar "${nombre}"? Esta acción no se puede deshacer.`,
+            tipo: "danger", // Para que se vea rojo
+            onConfirm: () => {
+                // Lógica optimista
+                setListaRecetas(prev => prev.filter(r => r.id !== id));
 
-        if (confirm(`¿Estás seguro de eliminar "${nombre}"?`)) {
-            // ELIMINACIÓN OPTIMISTA: Borramos de la vista inmediatamente
-            setListaRecetas(prev => prev.filter(r => r.id !== id));
-
-            // ENVIAMOS AL SERVIDOR (Usando POST con spoofing de DELETE para máxima compatibilidad)
-            router.post(`/recipes/${id}`, {
-                _method: 'delete',
-            }, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    console.log("Eliminado correctamente del servidor");
-                },
-                onError: (err) => {
-                    console.error("Error al eliminar:", err);
-                    setListaRecetas(recipes); // Revertimos si falla
-                    alert("No se pudo eliminar en el servidor.");
-                }
-            });
-        }
+                // Envío al servidor
+                router.post(`/recipes/${id}`, {
+                    _method: 'delete',
+                }, {
+                    preserveScroll: true,
+                    onError: () => {
+                        setListaRecetas(recipes);
+                        alert("No se pudo eliminar.");
+                    }
+                });
+            }
+        });
     };
 
     const prepararEdicion = (recipe) => {
@@ -145,6 +152,14 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
             >
                 ← Menú Principal
             </Link>
+            <ModalDinamico 
+                isOpen={modalConfig.isOpen}
+                onClose={cerrarModal}
+                onConfirm={modalConfig.onConfirm}
+                titulo={modalConfig.titulo}
+                mensaje={modalConfig.mensaje}
+                tipo={modalConfig.tipo}
+            />
         </div>
     );
 }
