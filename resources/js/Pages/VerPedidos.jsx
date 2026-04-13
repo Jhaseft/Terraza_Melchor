@@ -1,9 +1,8 @@
-import { Link, Head } from "@inertiajs/react";
+import { Link, Head, router } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
 
 export default function VerPedidos({ pedidos }) {
     const getFechaBolivia = () => new Date().toLocaleDateString('en-CA');
@@ -29,7 +28,9 @@ export default function VerPedidos({ pedidos }) {
         });
     }, [pedidosSeguros, fechaSeleccionada, busquedaCliente]);
 
-  
+    const refrescarDatos = () => {
+        router.reload({ only: ['pedidos'] }); 
+    };
     
     const descargarPDF = () => {
         const doc = new jsPDF();
@@ -56,6 +57,8 @@ export default function VerPedidos({ pedidos }) {
 
         doc.save(`Pedidos_${fechaSeleccionada}.pdf`);
     };
+
+
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans p-4 flex justify-center">
@@ -101,6 +104,8 @@ export default function VerPedidos({ pedidos }) {
                                 {formatearFechaCorta(fechaSeleccionada)}
                             </span>
                         </div>
+
+                        
                     </div>
 
                     {/* Filtro Cliente (Igual al de Registrar Pedido) */}
@@ -122,6 +127,12 @@ export default function VerPedidos({ pedidos }) {
                             >✕</button>
                         )}
                     </div>
+                    <button 
+                        onClick={refrescarDatos}
+                        className="bg-[#1a1a1a] text-[#96be8c] text-[12px] font-black py-2.5 px-6 rounded-xl border border-[#96be8c]/30 active:scale-95 transition-all uppercase"
+                    >
+                        Actualizar Lista
+                    </button>
                 </div>
 
                 {/* TABLA DE PEDIDOS */}
@@ -167,6 +178,7 @@ export default function VerPedidos({ pedidos }) {
                     </div>
                 </div>   
                 <div className="flex justify-end mt-4">
+                    
                     <button 
                         onClick={descargarPDF}
                         disabled={pedidosFiltrados.length === 0}
