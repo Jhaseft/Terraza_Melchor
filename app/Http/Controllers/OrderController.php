@@ -63,9 +63,6 @@ class OrderController extends Controller
     //Listar todas las órdenes  
     public function index() 
     {
-        if (!request()->header('X-Inertia')) {
-            return redirect()->route('home'); 
-        }
         return Inertia::render('VerPedidos', [
             'pedidos' => Order::select(
                     'id', 
