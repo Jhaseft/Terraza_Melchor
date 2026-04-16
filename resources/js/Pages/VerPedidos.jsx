@@ -34,25 +34,73 @@ export default function VerPedidos({ pedidos }) {
     
     const descargarPDF = () => {
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
         
-        // Título del PDF
+        
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0); 
         doc.text(`Informe de Pedidos - ${formatearFechaCorta(fechaSeleccionada)}`, 14, 15);
+        
+        if (pedidosFiltrados.length > 0 && pedidosFiltrados[0].nombre_plato) {
+            const platoTexto = `PLATO: ${pedidosFiltrados[0].nombre_plato.toUpperCase()}`;
+            doc.setTextColor(255, 107, 0); // Naranja corporativo
+            const textWidth = doc.getTextWidth(platoTexto);
+            doc.text(platoTexto, pageWidth - textWidth - 14, 15);
+        }
 
-        // Generar la tabla automáticamente
+        const columnasPDF = ["N°", "Cliente", "Cant.", "QR?", "Entrega", "Obs."];
+
         autoTable(doc, {
-            head: [columnas],
+            head: [columnasPDF],
             body: pedidosFiltrados.map((p, index) => [
                 index + 1,
                 p.nombre_cliente,
-                p.nombre_plato || '---',
                 p.no_platos,
-                p.qr ? 'SÍ' : 'NO',
+                p.qr ? '' : '. . .', 
                 p.metodo_entrega === 'M' ? 'MOTO' : 'RECOJO',
-                p.observaciones || '---'
+                p.observaciones || '. . .'
             ]),
-            startY: 20,
+            startY: 22,
             theme: 'grid',
-            headStyles: { fillColor: [255, 107, 0] } 
+          
+            headStyles: { 
+                fillColor: [255, 107, 0], 
+                halign: 'center',
+                textColor: [255, 255, 255],
+                fontStyle: 'bold'
+            },
+
+            bodyStyles: {
+                textColor: [0, 0, 0]
+            },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 10 },
+                2: { halign: 'center', cellWidth: 15 },
+                3: { halign: 'center', cellWidth: 20 },
+                4: { halign: 'center', cellWidth: 25 },
+            },
+            // --- DIBUJO DE CHECKS
+            didDrawCell: (data) => {
+                const indexOriginal = data.row.index;
+                if (data.column.index === 3 && data.cell.section === 'body' && pedidosFiltrados[indexOriginal]?.qr) {
+                    const x = data.cell.x + 5;
+                    const y = data.cell.y + 5;
+                    
+                    doc.setDrawColor(60, 60, 60); 
+                    doc.setLineWidth(1.2);     
+                    
+                    // Check 1
+                    doc.line(x, y, x + 2, y + 2);
+                    doc.line(x + 2, y + 2, x + 5, y - 2);
+                    
+                    // Check 2
+                    const x2 = x + 6;
+                    doc.line(x2, y, x2 + 2, y + 2);
+                    doc.line(x2 + 2, y + 2, x2 + 5, y - 2);
+                }
+            },
+            styles: { fontSize: 9, cellPadding: 3 }
         });
 
         doc.save(`Pedidos_${fechaSeleccionada}.pdf`);
