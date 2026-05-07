@@ -7,6 +7,19 @@ import RecipeCard from '@/Components/RecipeCard';
 import ModalDinamico from "@/Components/ModalDinamico";
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
+    const [isAdmin, setIsAdmin] = useState(false);
+    useEffect(() => {
+        const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true';
+        if (sesionAdmin) setIsAdmin(true);
+    }, []);
+
+    const verificarPin = () => {
+        const pin = prompt("INGRESE PIN:");
+        if (pin === '1666') {
+            setIsAdmin(true);
+            sessionStorage.setItem('terraza_admin', 'true');
+        }
+    };
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         titulo: '',
@@ -30,12 +43,10 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
             isOpen: true,
             titulo: "Eliminar Receta",
             mensaje: `¿Estás seguro de eliminar "${nombre}"? Esta acción no se puede deshacer.`,
-            tipo: "danger", // Para que se vea rojo
+            tipo: "danger", 
             onConfirm: () => {
-                // Lógica optimista
                 setListaRecetas(prev => prev.filter(r => r.id !== id));
 
-                // Envío al servidor
                 router.post(`/recipes/${id}`, {
                     _method: 'delete',
                 }, {
@@ -60,6 +71,17 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
 
             {/* HEADER CON TABS */}
             <div className="bg-[#3a3a44] pt-8 pb-0 px-6 rounded-b-[2rem] shadow-xl mb-6">
+                {!isAdmin && (
+                    <button 
+                        onClick={verificarPin}
+                        className="absolute top-4 right-6 text-gray-600 hover:text-[#ff6b00] transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+                )}
+
                 <h1 className="text-center font-black uppercase tracking-widest text-sm mb-6">Fichas Técnicas</h1>
                 
                 <div className="flex border-b border-white/10">
@@ -75,12 +97,14 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                     >
                         {recetaAEditar ? 'Editando Receta' : 'Agregar Nueva'}
                     </button>
-                    <button 
-                        onClick={() => setTabActiva('costos')}
-                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${tabActiva === 'costos' ? 'border-b-2 border-[#96be8c] text-white' : 'text-gray-500'}`}
-                    >
-                        Costos de Recetas
-                    </button>
+                    {isAdmin && (
+                        <button 
+                            onClick={() => setTabActiva('costos')}
+                            className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${tabActiva === 'costos' ? 'border-b-2 border-[#96be8c] text-white' : 'text-gray-500'}`}
+                        >
+                            Costos de Recetas
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -101,6 +125,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                                         recipe={recipe}
                                         onEdit={prepararEdicion}
                                         onDelete={eliminarReceta}
+                                        isAdmin={isAdmin}
                                     />
                                 ))
                             ) : (
@@ -129,7 +154,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                         </motion.div>
                     )}
 
-                    {tabActiva === 'costos' && (
+                    {tabActiva === 'costos' && isAdmin && (
                         <motion.div 
                             key="costos"
                             initial={{ opacity: 0, x: 20 }}
@@ -138,7 +163,6 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                         >
                             <GestionCostos 
                                 recipes={listaRecetas}
-                                catalogo={catalogo_ingredientes}
                                 onFinish={() => setTabActiva('ver')}
                             />
                         </motion.div>

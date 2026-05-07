@@ -27,13 +27,10 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
         const existente = catalogo.find(i => i.nombre.toUpperCase() === nombreLimpio);
 
         if (existente) {
-            // Si existe, usamos sus datos de la DB
             setData('ingredientes', [...data.ingredientes, { ...existente, peso: '', unidad: 'gr' }]);
         } else {
-            // SI ES NUEVO: Lo agregamos con un ID temporal (negativo o string)
-            // para que Laravel sepa que debe crearlo
             setData('ingredientes', [...data.ingredientes, { 
-                id: null, // ID null le dice al Controller: "¡Créame!"
+                id: null, 
                 nombre: nombreLimpio, 
                 peso: '', 
                 unidad: 'gr',
@@ -102,7 +99,12 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
             onSubmit={submit}
             className="max-w-6xl mx-auto space-y-8 pb-20 px-4 md:px-8"
         >
-            <FormHeader data={data} setData={setData} errors={errors} categoriasExistentes={categoriasExistentes} />
+            <FormHeader 
+                data={data} 
+                setData={setData} 
+                errors={errors} 
+                categoriasExistentes={categoriasExistentes} 
+            />
             
             <IngredientSearch 
                 data={data} catalogo={catalogo} 

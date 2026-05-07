@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 
 export default function RecipeShow({ recipe }) {
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        // Al igual que en el Index, revisamos la sesión del navegador
+        const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true';
+        if (sesionAdmin) setIsAdmin(true);
+    }, []);
+    
     const formatearCantidad = (cantidad, unidad) => {
         const unidadesConFraccion = ['taza(s)', 'cuchara(s)', 'unidad(es)'];
         
@@ -136,10 +144,11 @@ export default function RecipeShow({ recipe }) {
                                         </p>
                                         
                                         {/* COSTO ESCALADO */}
-                                        <p className="text-[14px] text-gray-400 font-bold mt-0.5">
-                                            {/* Multiplicamos el costo por el factor */}
-                                            {(parseFloat(ing.pivot.costo_unitario || 0) * factor).toFixed(2)} BOB
-                                        </p>
+                                        {isAdmin && (
+                                            <p className="text-[14px] text-gray-400 font-bold mt-0.5">
+                                                {(parseFloat(ing.pivot.costo_unitario || 0) * factor).toFixed(2)} BOB
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             );

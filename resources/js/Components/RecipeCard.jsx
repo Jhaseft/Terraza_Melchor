@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 
 
-export default function RecipeCard({ recipe, onEdit, onDelete }) {
+export default function RecipeCard({ recipe, onEdit, onDelete, isAdmin }) {
     // Calculamos el costo total sumando lo que hay en el pivot de cada ingrediente
     const costoTotal = recipe.ingredients?.reduce((acc, ing) => {
         return acc + (parseFloat(ing.pivot.costo_unitario) || 0);
@@ -47,29 +47,32 @@ export default function RecipeCard({ recipe, onEdit, onDelete }) {
                         </p>
 
                         {/* COSTO TOTAL */}
-                        <p className={`text-[12px] text-gray-400 flex items-center gap-0.5 border-l border-white/10 pl-3 ${costoTotal > 0 ? 'text-[#96be8c]' : 'text-gray-500'}`}>
-                            <span className="text-[16px]">$</span> {costoTotal.toFixed(2)} BOB
-                        </p>
+                        {isAdmin && (
+                            <p className={`text-[12px] text-gray-400 flex items-center gap-0.5 border-l border-white/10 pl-3 ${costoTotal > 0 ? 'text-[#96be8c]' : 'text-gray-500'}`}>
+                                <span className="text-[16px] font-bold">$</span> {costoTotal.toFixed(2)} BOB
+                            </p>
+                        )}
                     </div>
                 </div>
             </Link>
 
             {/* ACCIONES */}
-            <div className="flex gap-2 pr-2">
-                <button 
-                    type="button"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation(); // IMPORTANTE: Para que no se abra la receta al hacer clic aquí
-                        onDelete(recipe.id, recipe.nombre);
-                    }}
-                    className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all shadow-inner"
-                    title="Eliminar"
-                >
-                    <Trash2 size={16} />
-                </button>
-            </div>
-
+            {isAdmin && (
+                <div className="flex gap-2 pr-2">
+                    <button 
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation(); 
+                            onDelete(recipe.id, recipe.nombre);
+                        }}
+                        className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all shadow-inner"
+                        title="Eliminar"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

@@ -63,7 +63,7 @@ export default function FormHeader({ data, setData, errors, categoriasExistentes
                             type="file" 
                             accept="image/*"
                             onChange={e => setData('foto_principal', e.target.files[0])}
-                            className="hidden" // Ocultamos el input real
+                            className="hidden"
                         />
                     </label>
 
