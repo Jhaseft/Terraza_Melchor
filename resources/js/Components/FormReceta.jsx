@@ -88,9 +88,14 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
         post(route('recipes.store'), {
             forceFormData: true,
             onSuccess: () => {
+                console.log("¡Éxito al guardar!");
                 reset();
-                if(onSuccessSave) onSuccessSave(); // <-- ¡Aquí salta a la pestaña "Ver"!
+                if(onSuccessSave) onSuccessSave(); 
             },
+            onError: (err) => {
+                console.error("Errores de validación devueltos por Laravel:", err);
+            },
+            onFinish: () => console.log("Petición finalizada.")
         });
     };
 

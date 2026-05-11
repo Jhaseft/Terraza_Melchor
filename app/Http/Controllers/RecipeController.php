@@ -32,82 +32,97 @@ class RecipeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'categoria' => 'required|string',
-            'porciones_base' => 'required|integer|min:1',
-            'foto_principal' => 'nullable|image|max:2048',
-            'ingredientes' => 'required|array|min:1',
-            'pasos' => 'required|array|min:1',
-            'pasos.*.foto_paso' => 'nullable|image|max:2048',
-        ]);
-
-        //dd($request->allFiles());
-        DB::transaction(function () use ($request) {
-            
-            $urlPrincipal = null;
-            if ($request->hasFile('foto_principal')) {
-                $file = $request->file('foto_principal');
-                $result = cloudinary()->uploadApi()->upload(
-                    $file->getRealPath(),
-                    [
-                        'folder' => 'terraza/recetas',
-                        'transformation' => [
-                            'width' => 200, 'height' => 200, 'crop' => 'fill', 'format' => 'webp'
-                        ]
-                    ]
-                );
-                $urlPrincipal = $result['secure_url'] ?? null;
-            }
-            $recipe = Recipe::create([
-                'nombre' => strtoupper($request->nombre),
-                'categoria' => strtoupper($request->categoria),
-                'porciones_base' => $request->porciones_base,
-                'foto_principal' => $urlPrincipal,
+        Log::info('Datos recibidos en store:', $request->all());
+        Log::info('Archivos recibidos:', $request->allFiles());
+        try{
+            $request->validate([
+                'nombre' => 'required|string|max:255',
+                'categoria' => 'required|string',
+                'porciones_base' => 'required|integer|min:1',
+                'foto_principal' => 'nullable|image|max:10240',
+                'ingredientes' => 'required|array|min:1',
+                'pasos' => 'required|array|min:1',
+                'pasos.*.foto_paso' => 'nullable|image|max:10240',
             ]);
 
-            foreach ($request->ingredientes as $ing) {
-                $ingredienteDB = Ingredient::firstOrCreate(
-                    ['nombre' => strtoupper($ing['nombre'])]
-                );
-
-                $recipe->ingredients()->attach($ingredienteDB->id, [
-                    'peso' => $ing['peso'],
-                    'unidad' => $ing['unidad']
-                ]);
-            }
-
-            foreach ($request->pasos as $index => $paso) {
-                $urlPaso = null;
-
-                // FORMA CORRECTA DE DETECTAR ARCHIVOS EN ARRAYS CON INERTIA
-                if ($request->hasFile("pasos.{$index}.foto_paso")) {
-                    
-                    $filePaso = $request->file("pasos.{$index}.foto_paso");
-                    
-                    $resultPaso = cloudinary()->uploadApi()->upload(
-                        $filePaso->getRealPath(),
+            //dd($request->allFiles());
+            DB::transaction(function () use ($request) {
+                
+                $urlPrincipal = null;
+                if ($request->hasFile('foto_principal')) {
+                    $file = $request->file('foto_principal');
+                    $result = cloudinary()->uploadApi()->upload(
+                        $file->getRealPath(),
                         [
-                            'folder' => 'terraza/pasos',
+                            'folder' => 'terraza/recetas',
                             'transformation' => [
-                                'crop' => 'fill', 
-                                'gravity' => 'center',
-                                'format' => 'webp',
-                                'quality' => 'auto'
+                                'width' => 200, 'height' => 200, 'crop' => 'fill', 'format' => 'webp'
                             ]
                         ]
                     );
-                    $urlPaso = $resultPaso['secure_url'];
-                   
+                    $urlPrincipal = $result['secure_url'] ?? null;
+                }
+                $recipe = Recipe::create([
+                    'nombre' => strtoupper($request->nombre),
+                    'categoria' => strtoupper($request->categoria),
+                    'porciones_base' => $request->porciones_base,
+                    'foto_principal' => $urlPrincipal,
+                ]);
+
+                foreach ($request->ingredientes as $ing) {
+                    $ingredienteDB = Ingredient::firstOrCreate(
+                        ['nombre' => strtoupper($ing['nombre'])]
+                    );
+
+                    $recipe->ingredients()->attach($ingredienteDB->id, [
+                        'peso' => $ing['peso'],
+                        'unidad' => $ing['unidad']
+                    ]);
                 }
 
-                $recipe->steps()->create([
-                    'numero_paso' => $index + 1,
-                    'descripcion' => $paso['descripcion'],
-                    'foto_paso'   => $urlPaso, 
-                ]);
-            }
-        });
+                foreach ($request->pasos as $index => $paso) {
+                    $urlPaso = null;
+
+                    // FORMA CORRECTA DE DETECTAR ARCHIVOS EN ARRAYS CON INERTIA
+                    if ($request->hasFile("pasos.{$index}.foto_paso")) {
+                        
+                        $filePaso = $request->file("pasos.{$index}.foto_paso");
+                        
+                        $resultPaso = cloudinary()->uploadApi()->upload(
+                            $filePaso->getRealPath(),
+                            [
+                                'folder' => 'terraza/pasos',
+                                'transformation' => [
+                                    'crop' => 'fill', 
+                                    'gravity' => 'center',
+                                    'format' => 'webp',
+                                    'quality' => 'auto'
+                                ]
+                            ]
+                        );
+                        $urlPaso = $resultPaso['secure_url'];
+                    
+                    }
+
+                    $recipe->steps()->create([
+                        'numero_paso' => $index + 1,
+                        'descripcion' => $paso['descripcion'],
+                        'foto_paso'   => $urlPaso, 
+                    ]);
+                }
+            });
+        }catch (\Exception $e) {
+            // --- AQUÍ ESTÁ EL CATCH ---
+            Log::error('=========================================');
+            Log::error('ERROR AL GUARDAR RECETA EN TERRAZA MELCHOR');
+            Log::error('Mensaje: ' . $e->getMessage());
+            Log::error('Línea: ' . $e->getLine());
+            Log::error('Archivo: ' . $e->getFile());
+            Log::error('=========================================');
+
+            // Importante: Devolvemos el error a la vista para que el frontend sepa que falló
+            return back()->withErrors(['error' => 'No se pudo guardar: ' . $e->getMessage()]);
+        }
         return redirect()->route('recipes.index');
     }
 

@@ -5,8 +5,10 @@ import FormReceta from '@/Components/FormReceta';
 import GestionCostos from '@/Components/GestionCostos';
 import RecipeCard from '@/Components/RecipeCard';
 import ModalDinamico from "@/Components/ModalDinamico";
+import LoaderModal from '@/Components/LoaderModal';
 
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
+    const [estaCargando, setEstaCargando] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     useEffect(() => {
         const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true';
@@ -46,11 +48,13 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
             tipo: "danger", 
             onConfirm: () => {
                 setListaRecetas(prev => prev.filter(r => r.id !== id));
+                setEstaCargando(true);
 
                 router.post(`/recipes/${id}`, {
                     _method: 'delete',
                 }, {
                     preserveScroll: true,
+                    onFinish: () => setEstaCargando(false),
                     onError: () => {
                         setListaRecetas(recipes);
                         alert("No se pudo eliminar.");
@@ -176,6 +180,9 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
             >
                 ← Menú Principal
             </Link>
+
+            {estaCargando && <LoaderModal mensaje="Eliminando Receta" />}
+
             <ModalDinamico 
                 isOpen={modalConfig.isOpen}
                 onClose={cerrarModal}
