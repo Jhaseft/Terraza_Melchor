@@ -1,20 +1,49 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useForm } from '@inertiajs/react';
 
 import FormHeader from './FormHeader';
 import IngredientSearch from './IngredientSearch';
 import PreparationSteps from './PreparationSteps';
 
-export default function FormReceta({ catalogo = [], categoriasExistentes = [], onSuccessSave }) {
+export default function FormReceta({ catalogo = [], categoriasExistentes = [], onSuccessSave, recetaAEditar=null }) {
 
     const { data, setData, post, processing, reset, errors } = useForm({
-        nombre: '',
-        categoria: '',
-        porciones_base: 1,
+        _method: recetaAEditar ? 'put' : 'post',
+        nombre: recetaAEditar?.nombre || '',
+        categoria: recetaAEditar?.categoria || '',
+        porciones_base: recetaAEditar?.porciones_base || 1,
         foto_principal: null,
-        ingredientes: [], 
+        ingredientes: [], // Lo inicializamos vacío o con el mapeo directo
         pasos: [{ descripcion: '', foto_paso: null }]
     });
+    useEffect(() => {
+        if (recetaAEditar) {
+            setData(prev => ({
+                ...prev,
+                nombre: recetaAEditar.nombre || '',
+                categoria: recetaAEditar.categoria || '',
+                porciones_base: recetaAEditar.porciones_base || 1,
+                ingredientes: recetaAEditar.ingredients?.map(ing => ({
+                    id: ing.id,
+                    nombre: ing.nombre,
+                    peso: ing.pivot?.peso || '',
+                    unidad: ing.pivot?.unidad || 'gr'
+                })) || [],
+                // USAMOS 'steps' que es el nombre en tu modelo Recipe.php
+                pasos: recetaAEditar.steps?.length > 0 
+                    ? recetaAEditar.steps.map(p => ({
+                        id: p.id,
+                        descripcion: p.descripcion || '', 
+                        foto_paso: p.foto_paso || null
+                    }))
+                    : [{ descripcion: '', foto_paso: null }]
+            }));
+        }
+    }, [recetaAEditar]);
+
+
+    console.log("¿Qué hay en recetaAEditar?:", recetaAEditar);
+    console.log("¿Qué hay en data.pasos?:", data.pasos);
 
     const agregarIngrediente = (valor) => {
         const nombreLimpio = valor.trim().toUpperCase();
@@ -85,17 +114,17 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('recipes.store'), {
+
+        const url = recetaAEditar 
+            ? route('recipes.update', recetaAEditar.id) 
+            : route('recipes.store');
+
+        post(url, {
             forceFormData: true,
             onSuccess: () => {
-                console.log("¡Éxito al guardar!");
                 reset();
                 if(onSuccessSave) onSuccessSave(); 
             },
-            onError: (err) => {
-                console.error("Errores de validación devueltos por Laravel:", err);
-            },
-            onFinish: () => console.log("Petición finalizada.")
         });
     };
 

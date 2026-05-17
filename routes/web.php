@@ -55,8 +55,7 @@ Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store
 Route::get('/recipes/{id}', [RecipeController::class, 'show'])->name('recipes.show');
 Route::get('/recipes/{id}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
 Route::post('/recipes/update-costs', [RecipeController::class, 'updateCosts'])->name('recipes.updateCosts');
-Route::post('/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
-
+Route::match(['post', 'put'], '/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');

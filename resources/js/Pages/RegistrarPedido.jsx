@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState,useEffect } from "react";
 import ModalDinamico from "@/Components/ModalDinamico";
 
-export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
+export default function Welcome({ nombresPlatos = [], nombresClientes = [], totalPlatosHoy = 0 }) {
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         titulo: '',
@@ -11,30 +11,16 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
         tipo: 'info',
         onConfirm: null
     });
-
-    const [conteoPersonal, setConteoPersonal] = useState(0);
     
     const getFechaBolivia = () => {
         return new Date().toLocaleDateString('en-CA');
     };
 
-    useEffect(() => {
-        const guardado = JSON.parse(localStorage.getItem('registro_mesero'));
-        const hoy = getFechaBolivia();
+    const [conteoGlobal, setConteoGlobal] = useState(totalPlatosHoy);
 
-        if (guardado) {
-            // Si la fecha guardada NO es hoy, reseteamos a 0
-            if (guardado.fecha !== hoy) {
-                localStorage.setItem('registro_mesero', JSON.stringify({ total: 0, fecha: hoy }));
-                setConteoPersonal(0);
-            } else {
-                setConteoPersonal(guardado.total);
-            }
-        } else {
-            // Si es la primera vez que usa la app
-            localStorage.setItem('registro_mesero', JSON.stringify({ total: 0, fecha: hoy }));
-        }
-    }, []);
+    useEffect(() => {
+        setConteoGlobal(totalPlatosHoy);
+    }, [totalPlatosHoy]);
 
     const { data, setData, post, processing } = useForm({
         fecha: getFechaBolivia(),
@@ -89,24 +75,14 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
     // Separamos la lógica del POST para que sea más limpio llamarla desde el onConfirm
     const ejecutarEnvio = () => {
         post(route('orders.store'), {
-            onSuccess: () => {
-                const nuevoTotal = Number(conteoPersonal) + Number(data.cantidad);
-                const hoy = getFechaBolivia();
-
-                localStorage.setItem('registro_mesero', JSON.stringify({ 
-                    total: nuevoTotal, 
-                    fecha: hoy
-                }));
-
-                setConteoPersonal(nuevoTotal);
-
+            onSuccess: () => {        
                 setData(prevData => ({
                     ...prevData,
                     cliente: '',
                     nota: '',
                     cantidad: '',
                     es_qr: false,
-                    metodo_entrega: '', // También reseteamos el método
+                    metodo_entrega: '', 
                 }));
             },
         });
@@ -116,6 +92,8 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
         const audio = new Audio('/sounds/moto.mp3');
         audio.play();
     };
+
+    
 
     return (
         <div className="min-h-screen bg-[#2c2c34] text-white font-sans flex items-center justify-center p-4">
@@ -172,7 +150,7 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [] }) {
                                 <span className="text-[#96be8c] text-xs">›</span> N° Platos:
                             </label>
                             <p className="text-[#96be8c] font-black text-2xl ml-4 leading-none">
-                                {conteoPersonal}
+                                {conteoGlobal}
                             </p>
                         </div>
                     </div>

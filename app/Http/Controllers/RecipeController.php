@@ -15,8 +15,12 @@ class RecipeController extends Controller
     // Listar recetas y catálogo de ingredientes para el formulario
     public function index()
     {
+        $recipes = Recipe::with(['ingredients', 'steps'])->get();
+    
+        \Log::info($recipes->pluck('steps'));
+
         return Inertia::render('Recipes', [ 
-            'recipes' => Recipe::with('ingredients')->get(),
+            'recipes' => Recipe::with(['ingredients', 'steps'])->get(),
             'catalogo_ingredientes' => Ingredient::all(),
             'categorias_existentes' => Recipe::distinct()->pluck('categoria')
         ]);
@@ -152,9 +156,12 @@ class RecipeController extends Controller
 
     public function edit(Recipe $recipe)
     {
-        // Cargamos las relaciones para que el formulario de edición tenga los datos
+        $data = $recipe->load(['ingredients', 'steps']);
+        // ESTO APARECERÁ EN storage/logs/laravel.log
+        Log::info('PASOS ENVIADOS DESDE LARAVEL:', $data->steps->toArray());
         return Inertia::render('Recipes/Index', [
-            'recipe' => $recipe->load(['ingredients', 'steps']),
+            'recetaAEditar' => $recipe->load(['ingredients', 'steps']), 
+            'catalogo_ingredientes' => Ingredient::all(),
             'isEditing' => true
         ]);
     }
@@ -216,4 +223,94 @@ class RecipeController extends Controller
         }
         return back();
     }
+
+
+
+
+
+    public function update(Request $request, $id)
+    {
+        $recipe = Recipe::findOrFail($id);
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'categoria' => 'required|string',
+            'porciones_base' => 'required|integer|min:1',
+            'foto_principal' => 'nullable', // Puede ser archivo o URL string
+            'ingredientes' => 'required|array|min:1',
+            'pasos' => 'required|array|min:1',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $recipe) {
+                
+                // 1. Foto Principal (Si es archivo se sube, si no se mantiene la que hay)
+                $urlPrincipal = $recipe->foto_principal;
+                if ($request->hasFile('foto_principal')) {
+                    if ($urlPrincipal) $this->borrarDeCloudinary($urlPrincipal, 'terraza/recetas');
+                    $result = cloudinary()->uploadApi()->upload($request->file('foto_principal')->getRealPath(), ['folder' => 'terraza/recetas']);
+                    $urlPrincipal = $result['secure_url'];
+                }
+
+                $recipe->update([
+                    'nombre' => strtoupper($request->nombre),
+                    'categoria' => strtoupper($request->categoria),
+                    'porciones_base' => $request->porciones_base,
+                    'foto_principal' => $urlPrincipal,
+                ]);
+
+                // 2. Ingredientes (Sincronización automática)
+                $ingredientesSync = [];
+                foreach ($request->ingredientes as $ing) {
+                    $ingDB = Ingredient::firstOrCreate(['nombre' => strtoupper($ing['nombre'])]);
+                    $ingredientesSync[$ingDB->id] = ['peso' => $ing['peso'], 'unidad' => $ing['unidad']];
+                }
+                $recipe->ingredients()->sync($ingredientesSync);
+
+                // 3. Pasos (El corazón del problema)
+                $pasosRequest = collect($request->pasos);
+                $idsVienenDelFront = $pasosRequest->pluck('id')->filter(fn($id) => is_numeric($id))->toArray();
+
+                // Borramos los que el usuario quitó
+                $recipe->steps()->whereNotIn('id', $idsVienenDelFront)->delete();
+
+                foreach ($pasosRequest as $index => $paso) {
+                    $urlPaso = (isset($paso['foto_paso']) && is_string($paso['foto_paso'])) ? $paso['foto_paso'] : null;
+
+                    if ($request->hasFile("pasos.{$index}.foto_paso")) {
+                        $resultPaso = cloudinary()->uploadApi()->upload($request->file("pasos.{$index}.foto_paso")->getRealPath(), ['folder' => 'terraza/pasos']);
+                        $urlPaso = $resultPaso['secure_url'];
+                    }
+
+                    // Si id no es numérico, updateOrCreate entiende que es un INSERT
+                    $recipe->steps()->updateOrCreate(
+                        ['id' => is_numeric($paso['id'] ?? null) ? $paso['id'] : null],
+                        [
+                            'numero_paso' => $index + 1,
+                            'descripcion' => $paso['descripcion'],
+                            'foto_paso'   => $urlPaso,
+                        ]
+                    );
+                }
+            });
+
+            return redirect()->route('recipes.index');
+        } catch (\Exception $e) {
+            Log::error('Error en Update: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error al actualizar receta']);
+        }
+    }
+
+    /**
+     * Función auxiliar para no borrar fotos de pasos que se mantienen igual
+     */
+    private function existeEnNuevosPasos($url, $nuevosPasos) {
+        foreach ($nuevosPasos as $paso) {
+            if (isset($paso['foto_paso']) && is_string($paso['foto_paso']) && $paso['foto_paso'] === $url) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
