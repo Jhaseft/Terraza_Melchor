@@ -14,8 +14,8 @@ class OrderController extends Controller
     
     public function create() 
     {
-
-        $totalPlatosHoy = \App\Models\Order::whereDate('fecha', Carbon::today())
+        $fechaHoyBolivia = Carbon::now('America/La_Paz')->toDateString();
+        $totalPlatosHoy = Order::whereDate('fecha', $fechaHoyBolivia)
         ->sum('no_platos');
 
         // Aseguramos que sea un array de strings simple y en mayúsculas

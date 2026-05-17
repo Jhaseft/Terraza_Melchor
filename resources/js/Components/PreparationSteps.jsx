@@ -106,7 +106,11 @@ export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, q
                                     <div className="flex items-center gap-3 bg-[#96be8c]/10 border border-[#96be8c]/30 p-2 rounded-xl">
                                         {/* Previsualización rápida */}
                                         <img 
-                                            src={URL.createObjectURL(paso.foto_paso)} 
+                                            src={
+                                                typeof paso.foto_paso === 'string' 
+                                                ? paso.foto_paso 
+                                                : URL.createObjectURL(paso.foto_paso) 
+                                            }
                                             alt="Paso" 
                                             className="w-10 h-10 object-cover rounded-lg shadow-md"
                                         />

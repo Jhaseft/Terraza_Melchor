@@ -150,6 +150,7 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                             <FormReceta 
                                 catalogo={catalogo_ingredientes} 
                                 categoriasExistentes={categorias_existentes} 
+                                recetaAEditar={recetaAEditar}
                                 onSuccessSave={() => {
                                     setTabActiva('ver');
                                     setRecetaAEditar(null);

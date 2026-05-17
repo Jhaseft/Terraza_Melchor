@@ -75,7 +75,7 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [], tota
     // Separamos la lógica del POST para que sea más limpio llamarla desde el onConfirm
     const ejecutarEnvio = () => {
         post(route('orders.store'), {
-            onSuccess: () => {            
+            onSuccess: () => {        
                 setData(prevData => ({
                     ...prevData,
                     cliente: '',
