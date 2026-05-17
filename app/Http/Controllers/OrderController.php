@@ -14,6 +14,10 @@ class OrderController extends Controller
     
     public function create() 
     {
+
+        $totalPlatosHoy = \App\Models\Order::whereDate('fecha', Carbon::today())
+        ->sum('no_platos');
+
         // Aseguramos que sea un array de strings simple y en mayúsculas
         $nombresRecetas = \App\Models\Recipe::pluck('nombre')
             ->map(fn($n) => strtoupper($n))
@@ -30,6 +34,7 @@ class OrderController extends Controller
         return Inertia::render('RegistrarPedido', [
             'nombresPlatos'   => $nombresRecetas,
             'nombresClientes' => $nombresClientes,
+            'totalPlatosHoy'  => (int)$totalPlatosHoy,
         ]);
     }
 

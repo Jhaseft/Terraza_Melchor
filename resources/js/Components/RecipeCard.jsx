@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Share2 } from 'lucide-react';
 
 
 export default function RecipeCard({ recipe, onEdit, onDelete, isAdmin }) {
@@ -8,6 +8,23 @@ export default function RecipeCard({ recipe, onEdit, onDelete, isAdmin }) {
     const costoTotal = recipe.ingredients?.reduce((acc, ing) => {
         return acc + (parseFloat(ing.pivot.costo_unitario) || 0);
     }, 0) || 0;
+
+    const handleShare = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = route('recipes.show', recipe.id);
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `Ficha Técnica: ${recipe.nombre}`,
+                text: `Mira la receta de ${recipe.nombre} `,
+                url: url,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(window.location.origin + url);
+            alert('Enlace copiado al portapapeles');
+        }
+    };
 
     return (
         <div className="group flex items-center gap-4 bg-[#3a3a44] p-3 rounded-2xl border border-white/5 hover:border-white/10 transition-all shadow-lg">
@@ -55,6 +72,17 @@ export default function RecipeCard({ recipe, onEdit, onDelete, isAdmin }) {
                     </div>
                 </div>
             </Link>
+
+            <div className="flex px-2">
+                <button 
+                    type="button"
+                    onClick={handleShare}
+                    className="p-3 bg-white/5 hover:bg-[#96be8c]/20 text-gray-400 hover:text-[#96be8c] rounded-xl transition-all shadow-inner"
+                    title="Compartir"
+                >
+                    <Share2 size={16} />
+                </button>
+            </div>
 
             {/* ACCIONES */}
             {isAdmin && (
