@@ -10,6 +10,7 @@ import LoaderModal from '@/Components/LoaderModal';
 export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [], categorias_existentes }) {
     const [estaCargando, setEstaCargando] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('TODAS');
     useEffect(() => {
         const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true';
         if (sesionAdmin) setIsAdmin(true);
@@ -39,6 +40,11 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
     useEffect(() => {
         setListaRecetas(recipes);
     }, [recipes]);
+    const categoriasUnicas = ['TODAS', ...new Set(recipes.map(r => r.categoria))];
+    const recetasFiltradas = listaRecetas.filter(r => 
+        categoriaSeleccionada === 'TODAS' || r.categoria === categoriaSeleccionada
+    );
+
 
     const eliminarReceta = (id, nombre) => {
         setModalConfig({
@@ -122,8 +128,27 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
                             exit={{ opacity: 0, y: -10 }}
                             className="flex flex-col gap-4 max-w-4xl mx-auto w-full"
                         >
-                            {listaRecetas.length > 0 ? (
-                                listaRecetas.map((recipe) => (
+
+                            {/* --- SELECTOR DE CATEGORÍAS (UBICACIÓN SOLICITADA) --- */}
+                            <div className="mb-4">
+                                <label className="text-[9px] font-black uppercase text-gray-500 ml-2 mb-2 block tracking-widest">
+                                    Filtrar por Categoría
+                                </label>
+                                <select 
+                                    value={categoriaSeleccionada}
+                                    onChange={(e) => setCategoriaSeleccionada(e.target.value)}
+                                    className="w-full bg-[#3a3a44] border border-white/5 text-white text-xs font-bold p-4 rounded-2xl outline-none focus:border-[#ff6b00] transition-all appearance-none cursor-pointer shadow-lg"
+                                >
+                                    {categoriasUnicas.map(cat => (
+                                        <option key={cat} value={cat} className="bg-[#2c2c34]">
+                                            {cat === 'TODAS' ? 'MOSTRAR TODAS LAS RECETAS' : cat}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {recetasFiltradas.length > 0 ? (
+                                recetasFiltradas.map((recipe) => (
                                     <RecipeCard 
                                         key={recipe.id}
                                         recipe={recipe}
