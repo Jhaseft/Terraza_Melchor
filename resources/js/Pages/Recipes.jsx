@@ -18,11 +18,23 @@ export default function RecipesIndex({ recipes = [], catalogo_ingredientes = [],
 
     const verificarPin = () => {
         const pin = prompt("INGRESE PIN:");
-        if (pin === '1666') {
-            setIsAdmin(true);
-            sessionStorage.setItem('terraza_admin', 'true');
-        }
+        if (!pin) return; // Si cancela o lo deja vacío, no hace nada
+
+        // Enviamos el PIN de forma oficial al servidor de Laravel
+        router.post('/admin/validate-pin', { pin: pin }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Si el servidor confirma que es '1666', activa el modo admin en el front
+                setIsAdmin(true);
+                sessionStorage.setItem('terraza_admin', 'true');
+            },
+            onError: () => {
+                // Si el servidor lo rechaza, muestra el error
+                alert("PIN INCORRECTO. ACCESO DENEGADO.");
+            }
+        });
     };
+
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         titulo: '',

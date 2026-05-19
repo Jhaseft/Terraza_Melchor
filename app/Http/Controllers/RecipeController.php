@@ -135,9 +135,13 @@ class RecipeController extends Controller
         // Traemos la receta con sus relaciones
         $recipe = Recipe::with(['ingredients', 'steps'])->findOrFail($id);
 
-        // IMPORTANTE: El nombre aquí debe coincidir con tu archivo .jsx
+        // Verificamos de forma segura si la sesión oficial de administrador existe en el servidor
+        $isAdmin = session()->get('terraza_admin_session', false);
+
+        // Enviamos la receta y el estado de los permisos a la vista de React
         return Inertia::render('RecipeShow', [
-            'recipe' => $recipe
+            'recipe' => $recipe,
+            'isAdmin' => $isAdmin // <--- Este dato le dirá a React si pintar o no la flecha
         ]);
     }
 

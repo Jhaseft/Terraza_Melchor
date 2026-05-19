@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 
-export default function RecipeShow({ recipe }) {
-    const [isAdmin, setIsAdmin] = useState(false);
+export default function RecipeShow({ recipe, isAdmin: isAdminServer }) {
+    const [isAdmin, setIsAdmin] = useState(isAdminServer);
 
     useEffect(() => {
-        // Al igual que en el Index, revisamos la sesión del navegador
-        const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true';
+        // Mantenemos una doble verificación con el almacenamiento por si recarga la página
+        const sesionAdmin = sessionStorage.getItem('terraza_admin') === 'true' || isAdminServer;
         if (sesionAdmin) setIsAdmin(true);
-    }, []);
+    }, [isAdminServer]);
     
     const formatearCantidad = (cantidad, unidad) => {
         const unidadesConFraccion = ['taza(s)', 'cuchara(s)', 'unidad(es)'];
@@ -47,12 +47,14 @@ export default function RecipeShow({ recipe }) {
 
             {/* HEADER CON BOTÓN VOLVER */}
             <div className="relative h-48 bg-[#1a1a1a] flex items-end p-6 border-b border-white/10 overflow-hidden">
-                <Link 
-                    href={route('recipes.index')} 
-                    className="absolute top-6 left-6 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10 hover:bg-[#ff6b00] transition-colors"
-                >
-                    <span className="text-xl px-2">←</span>
-                </Link>
+                {isAdmin && (
+                    <Link 
+                        href={route('recipes.index')} 
+                        className="absolute top-6 left-6 bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10 hover:bg-[#ff6b00] transition-colors"
+                    >
+                        <span className="text-xl px-2">←</span>
+                    </Link>
+                )}
                 
                 <div className="relative z-10">
                     <span className="text-[#96be8c] font-black uppercase text-[10px] tracking-[0.3em]">

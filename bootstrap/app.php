@@ -12,6 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*'); 
+        
+        // 1. Registro del alias de tu middleware
+        $middleware->alias([
+            'terraza.admin' => \App\Http\Middleware\CheckTerrazaAdmin::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            '/admin/validate-pin',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

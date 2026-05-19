@@ -47,15 +47,21 @@ Route::post('/egresos', [ExpenseController::class, 'store'])->name('egresos.stor
 
 
 
-//acceder desde home a ficha tecnica
-Route::delete('/recipes/{id}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
-
-Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
-Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
+//ruta libre
 Route::get('/recipes/{id}', [RecipeController::class, 'show'])->name('recipes.show');
-Route::get('/recipes/{id}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
-Route::post('/recipes/update-costs', [RecipeController::class, 'updateCosts'])->name('recipes.updateCosts');
-Route::match(['post', 'put'], '/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
+Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
+
+
+//rutas protegidas
+Route::middleware(['terraza.admin'])->group(function () {
+    Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store');
+    Route::get('/recipes/{id}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
+    Route::delete('/recipes/{id}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
+    Route::post('/recipes/update-costs', [RecipeController::class, 'updateCosts'])->name('recipes.updateCosts');
+    Route::match(['post', 'put'], '/recipes/{id}', [RecipeController::class, 'update'])->name('recipes.update');
+});
+
+
 
 //para clientes
 Route::get('/buscar', [ProductController::class, 'search'])->name('products.search');
@@ -82,6 +88,18 @@ Route::get('/checkout', function () {
 
 Route::get('/auth/google/redirect', [SocialController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('/auth/google/callback', [SocialController::class, 'handleGoogleCallback'])->name('google.callback');
+
+
+Route::post('/admin/validate-pin', function (Illuminate\Http\Request $request) {
+    if ($request->pin === '1666') {
+        session(['terraza_admin_session' => true]); // Crea la sesión en el servidor
+        
+        return back(); // Le responde a Inertia de forma limpia refrescando la pantalla
+    }
+    
+    // Si el PIN es incorrecto, regresa con un error de validación
+    return back()->withErrors(['pin' => 'PIN incorrecto']);
+})->name('admin.pin.validate');
 
 
 require __DIR__ . '/auth.php';

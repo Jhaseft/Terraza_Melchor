@@ -93,6 +93,7 @@ export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, q
                                     <input 
                                         type="file" 
                                         accept="image/*" 
+                                        capture="environment" //linea para sacar fotos de la camara
                                         className="hidden" 
                                         onChange={(e) => {
                                             if (e.target.files.length > 0) {
