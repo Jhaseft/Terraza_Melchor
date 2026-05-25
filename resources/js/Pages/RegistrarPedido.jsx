@@ -112,25 +112,23 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [], tota
                     <span className="text-[10px] font-black uppercase tracking-widest">Menú</span>
                 </Link>
 
-                {/* SECCIÓN SUPERIOR: FECHA Y LOGO */}
-                <div className="flex justify-between items-start mb-6 pt-6">
-                    <div className="space-y-4">
-                        {/* fecha */}
+                {/* 🚨 NUEVA CABECERA REESTRUCTURADA Y ORDENADA POR FILAS FILTRADAS */}
+                <div className="w-full space-y-5 mb-6 pt-6">
+                    
+                    {/* FILA 1: FECHA (IZQUIERDA) Y LOGO (DERECHA) */}
+                    <div className="flex justify-between items-end w-full">
+                        {/* Fecha */}
                         <div className="space-y-2">
                             <label className="text-[#96be8c] font-bold text-sm flex items-center gap-2">
                                 <span className="bg-[#96be8c] text-[#2c2c34] rounded-full w-5 h-5 flex items-center justify-center text-[10px]">1</span>
                                 Fecha
                             </label>
-                            
                             <div className="relative inline-block"> 
-                                {/* DISEÑO VISUAL: Botón sólido con padding real para que no colapse */}
                                 <div className="bg-[#1a1a1a] border border-white/10 px-6 py-2.5 rounded-md shadow-xl flex items-center justify-center min-w-[150px]">
                                     <span className="text-white font-black text-sm tracking-tighter italic">
                                         {data.fecha ? data.fecha.split('-').reverse().join('/') : 'Seleccionar Fecha'}
                                     </span>
                                 </div>
-
-                                {/* INPUT: Estirado para cubrir el botón pero sin afectar el diseño */}
                                 <input 
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     value={data.fecha}
@@ -144,8 +142,19 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [], tota
                                 />
                             </div>
                         </div>
-                        {/* numero de platos */}
-                        <div className="space-y-0">
+
+                        {/* Logo Terraza Melchor */}
+                        <div className="w-28 text-center flex-shrink-0">
+                            <div className="border-2 border-white/10 p-2 rounded text-[9px] font-black italic leading-none uppercase">
+                                Terraza <br/> Melchor
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* FILA 2: N° PLATOS (IZQUIERDA) Y BOTÓN GUARDAR ORIGINAL (DERECHA) */}
+                    <div className="flex justify-between items-center w-full pt-1">
+                        {/* N° Platos */}
+                        <div className="space-y-0 flex-shrink-0">
                             <label className="text-white font-bold text-[10px] flex items-center gap-1 italic uppercase opacity-80">
                                 <span className="text-[#96be8c] text-xs">›</span> N° Platos:
                             </label>
@@ -153,17 +162,24 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [], tota
                                 {conteoGlobal}
                             </p>
                         </div>
-                    </div>
-                    {/* logo */}
-                    <div className="w-28 pt-2 text-center">
-                        <div className="border-2 border-white/10 p-2 rounded text-[9px] font-black italic leading-none uppercase">
-                            Terraza <br/> Melchor
+
+                        {/* Botón Guardar con estilo original intacto, sin aplastarse con los platos */}
+                        <div className="flex-shrink-0">
+                            <button 
+                                form="form-pedido"
+                                type="submit"
+                                className="bg-[#1a1a1a] hover:bg-black text-white font-bold py-3.5 px-8 rounded-full transition-all active:scale-95 shadow-lg border border-white/10 uppercase tracking-widest text-xs outline-none"
+                                disabled={processing}
+                            >
+                                {processing ? 'Guardando...' : 'Guardar'}
+                            </button>
                         </div>
                     </div>
+
                 </div>
 
                 {/* FORMULARIO */}
-                <form onSubmit={submit} className="space-y-5">
+                <form id="form-pedido" onSubmit={submit} className="space-y-5">
                     {/* nombre del plato */}
                     <div className="space-y-1">
                         <label className="text-[#96be8c] font-bold text-sm flex items-center gap-2">
@@ -261,32 +277,25 @@ export default function Welcome({ nombresPlatos = [], nombresClientes = [], tota
                         </div>
                     </div>
 
-                    {/* el total en bs */}
-                    <div className="text-center py-4">
-                        <p className="text-gray-400 text-sm uppercase tracking-widest mb-1 font-bold">Total</p>
-                        <h2 className="text-4xl font-black">
-                            {data.cantidad ? (Number(data.cantidad) * 30) : 0} <span className="text-xl not-italic">Bs.</span>
-                        </h2>
-                    </div>
+                    {/* cantidad en bs */}
+                    <div className="text-center py-4 space-y-4">
+                        <div>
+                            <p className="text-gray-400 text-sm uppercase tracking-widest mb-1 font-bold">Total</p>
+                            <h2 className="text-4xl font-black">
+                                {data.cantidad ? (Number(data.cantidad) * 30) : 0} <span className="text-xl not-italic">Bs.</span>
+                            </h2>
+                        </div>
 
-                    {/* bton de guardar */}
-                    <button 
-                        type="submit"
-                        className="w-full bg-[#1a1a1a] hover:bg-black text-white font-bold py-4 rounded-full transition-all active:scale-95 shadow-lg border border-white/10 uppercase tracking-widest"
-                        disabled={processing}
-                    >
-                        {processing ? 'Guardando...' : 'Guardar'}
-                    </button>
-
-                    {/* nota del pedido */}
-                    <div className="space-y-1">
-                        <label className="text-gray-400 font-bold text-xs uppercase">Nota</label>
-                        <input 
-                            type="text" 
-                            className="w-full bg-[#e0e0e0] border-none rounded-lg p-2 text-black text-sm"
-                            value={data.nota}
-                            onChange={e => setData('nota', e.target.value.toLocaleUpperCase())}
-                        />
+                        {/* La nota del pedido*/}
+                        <div className="space-y-1 text-left">
+                            <label className="text-gray-400 font-bold text-xs uppercase ml-1">Nota</label>
+                            <input 
+                                type="text" 
+                                className="w-full bg-[#e0e0e0] border-none rounded-lg p-2 text-black text-sm"
+                                value={data.nota}
+                                onChange={e => setData('nota', e.target.value.toLocaleUpperCase())}
+                            />
+                        </div>
                     </div>
                 </form>
             </motion.div>

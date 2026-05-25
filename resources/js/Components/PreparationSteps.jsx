@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trash2, Camera, X } from 'lucide-react'; // Importamos iconos nuevos
 
-export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, quitarPaso }) {
+export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, quitarPaso, abrirSelectorImagen }) {
+    const inputsRef = React.useRef([]);
     const procesarImagen = (file, targetWidth = 800) => {
         return new Promise((resolve) => {
             const img = new Image();
@@ -87,13 +88,21 @@ export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, q
                         {/* APARTADO DE FOTO POR PASO */}
                         <div className="flex items-center gap-3">
                             {!paso.foto_paso ? (
-                                <label className="flex items-center gap-2 cursor-pointer bg-white/5 px-4 py-2 rounded-xl border border-dashed border-white/10 hover:border-[#ff6b00]/50 hover:bg-[#ff6b00]/5 transition-all">
-                                    <Camera size={14} className="text-gray-400" />
-                                    <span className="text-[9px] font-black uppercase text-gray-400">Adjuntar Foto (Opcional)</span>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => abrirSelectorImagen('paso', idx)}
+                                        className="flex items-center gap-2 cursor-pointer bg-white/5 px-4 py-2 rounded-xl border border-dashed border-white/10 hover:border-[#ff6b00]/50 hover:bg-[#ff6b00]/5 transition-all outline-none"
+                                    >
+                                        <Camera size={14} className="text-gray-400" />
+                                        <span className="text-[9px] font-black uppercase text-gray-400">Adjuntar Foto (Opcional)</span>
+                                    </button>
+
+                                    {/* Mantenemos un input oculto normal conectado de forma nativa a la optimización de canvas */}
                                     <input 
                                         type="file" 
+                                        ref={el => { inputsRef.current[idx] = el; }}
                                         accept="image/*" 
-                                        capture="environment" //linea para sacar fotos de la camara
                                         className="hidden" 
                                         onChange={(e) => {
                                             if (e.target.files.length > 0) {
@@ -101,7 +110,7 @@ export default function PreparationSteps({ pasos, actualizarPaso, agregarPaso, q
                                             }
                                         }}
                                     />
-                                </label>
+                                </div>
                             ) : (
                                 <div className="relative inline-block">
                                     <div className="flex items-center gap-3 bg-[#96be8c]/10 border border-[#96be8c]/30 p-2 rounded-xl">

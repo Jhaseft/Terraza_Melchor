@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function FormHeader({ data, setData, errors, categoriasExistentes }) {
+export default function FormHeader({ data, setData, errors, categoriasExistentes, abrirSelectorImagen }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* para el nombre */}
@@ -57,15 +57,13 @@ export default function FormHeader({ data, setData, errors, categoriasExistentes
                 
                 <div className="bg-[#1a1a1a] p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center gap-4">
                     {/* BOTÓN PERSONALIZADO */}
-                    <label className="cursor-pointer bg-[#ff6b00] hover:bg-[#e66000] text-white text-[10px] font-black uppercase py-3 px-6 rounded-full transition-all active:scale-95 text-center w-full sm:w-auto">
+                    <button
+                        type="button"
+                        onClick={() => abrirSelectorImagen('principal')}
+                        className="cursor-pointer bg-[#ff6b00] hover:bg-[#e66000] text-white text-[10px] font-black uppercase py-4 px-6 rounded-full transition-all active:scale-95 text-center w-full sm:w-auto outline-none"
+                    >
                         {data.foto_principal ? 'Cambiar Foto' : 'Seleccionar Archivo'}
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={e => setData('foto_principal', e.target.files[0])}
-                            className="hidden"
-                        />
-                    </label>
+                    </button>
 
                     {/* NOMBRE DEL ARCHIVO O ESTADO */}
                     <div className="flex flex-col items-center sm:items-start overflow-hidden w-full">

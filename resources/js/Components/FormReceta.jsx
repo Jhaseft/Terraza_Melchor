@@ -1,11 +1,14 @@
-import React, {useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 
 import FormHeader from './FormHeader';
 import IngredientSearch from './IngredientSearch';
 import PreparationSteps from './PreparationSteps';
+import ModalSelectorImagen from './ModalSelectorImagen';
 
 export default function FormReceta({ catalogo = [], categoriasExistentes = [], onSuccessSave, recetaAEditar=null }) {
+    const [modalImagenOpen, setModalImagenOpen] = useState(false);
+    const [targetImagen, setTargetImagen] = useState({ tipo: 'principal', index: null });
 
     const { data, setData, post, processing, reset, errors } = useForm({
         _method: recetaAEditar ? 'put' : 'post',
@@ -29,7 +32,7 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
                     peso: ing.pivot?.peso || '',
                     unidad: ing.pivot?.unidad || 'gr'
                 })) || [],
-                // USAMOS 'steps' que es el nombre en tu modelo Recipe.php
+
                 pasos: recetaAEditar.steps?.length > 0 
                     ? recetaAEditar.steps.map(p => ({
                         id: p.id,
@@ -41,6 +44,22 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
         }
     }, [recetaAEditar]);
 
+    // funcion para el modal
+    const abrirSelectorImagen = (tipo, index = null) => {
+        setTargetImagen({ tipo, index });
+        setModalImagenOpen(true);
+    };
+
+    //funcion para abrir la camara o galeria
+    const handleImagenSeleccionada = (file) => {
+        if (targetImagen.tipo === 'principal') {
+            // Guardamos la foto principal de la receta
+            setData('foto_principal', file);
+        } else if (targetImagen.tipo === 'paso' && targetImagen.index !== null) {
+            // Guardamos la foto del paso correspondiente usando tu función nativa
+            actualizarPaso(targetImagen.index, data.pasos[targetImagen.index].descripcion, file);
+        }
+    };
 
     console.log("¿Qué hay en recetaAEditar?:", recetaAEditar);
     console.log("¿Qué hay en data.pasos?:", data.pasos);
@@ -129,42 +148,56 @@ export default function FormReceta({ catalogo = [], categoriasExistentes = [], o
     };
 
     return (
-        <form 
-            onSubmit={submit}
-            className="max-w-6xl mx-auto space-y-8 pb-20 px-4 md:px-8"
-        >
-            <FormHeader 
-                data={data} 
-                setData={setData} 
-                errors={errors} 
-                categoriasExistentes={categoriasExistentes} 
-            />
-            
-            <IngredientSearch 
-                data={data} catalogo={catalogo} 
-                agregarIngrediente={agregarIngrediente} 
-                actualizarIngrediente={actualizarIngrediente} 
-                quitarIngrediente={quitarIngrediente} 
-            />
-
-            <PreparationSteps 
-                pasos={data.pasos} 
-                actualizarPaso={actualizarPaso} 
-                agregarPaso={agregarPaso} 
-                quitarPaso={quitarPaso} 
-            />
-
-            <button 
-                type="submit" 
-                disabled={processing || incompleto}
-                className={`w-full py-5 rounded-3xl font-black uppercase tracking-widest transition-all shadow-xl 
-                    ${processing || incompleto 
-                        ? 'bg-gray-800 text-gray-600 opacity-50 cursor-not-allowed' 
-                        : 'bg-[#ff6b00] text-white hover:bg-[#e66000] hover:scale-[1.01] active:scale-95 shadow-[#ff6b00]/20'
-                    }`}
+        <>
+            <form 
+                onSubmit={submit}
+                className="max-w-6xl mx-auto space-y-8 pb-20 px-4 md:px-8"
             >
-                {processing ? 'Guardando Ficha...' : 'Guardar Receta'}
-            </button>
-        </form>
+                <FormHeader 
+                    data={data} 
+                    setData={setData} 
+                    errors={errors} 
+                    categoriasExistentes={categoriasExistentes} 
+                    abrirSelectorImagen={abrirSelectorImagen}
+                />
+                
+                <IngredientSearch 
+                    data={data} catalogo={catalogo} 
+                    agregarIngrediente={agregarIngrediente} 
+                    actualizarIngrediente={actualizarIngrediente} 
+                    quitarIngrediente={quitarIngrediente} 
+                />
+
+                <PreparationSteps 
+                    pasos={data.pasos} 
+                    actualizarPaso={actualizarPaso} 
+                    agregarPaso={agregarPaso} 
+                    quitarPaso={quitarPaso} 
+                    abrirSelectorImagen={abrirSelectorImagen}
+                />
+
+                <button 
+                    type="submit" 
+                    disabled={processing || incompleto}
+                    className={`w-full py-5 rounded-3xl font-black uppercase tracking-widest transition-all shadow-xl 
+                        ${processing || incompleto 
+                            ? 'bg-gray-800 text-gray-600 opacity-50 cursor-not-allowed' 
+                            : 'bg-[#ff6b00] text-white hover:bg-[#e66000] hover:scale-[1.01] active:scale-95 shadow-[#ff6b00]/20'
+                        }`}
+                >
+                    {processing ? 'Guardando Ficha...' : 'Guardar Receta'}
+                </button>
+            </form>
+            <ModalSelectorImagen 
+                isOpen={modalImagenOpen}
+                onClose={() => setModalImagenOpen(false)}
+                onImageSelected={handleImagenSeleccionada}
+            />
+            <ModalSelectorImagen 
+                isOpen={modalImagenOpen}
+                onClose={() => setModalImagenOpen(false)}
+                onImageSelected={handleImagenSeleccionada}
+            />
+        </>
     );
 }
