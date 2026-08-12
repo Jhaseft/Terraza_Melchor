@@ -33,6 +33,12 @@ export default function VerPedidos({ pedidos }) {
     };
     
     const descargarPDF = () => {
+        const pedidosOrdenados = [...pedidosFiltrados].sort((a, b) => {
+            if (a.metodo_entrega === 'M' && b.metodo_entrega !== 'M') return -1;
+            if (a.metodo_entrega !== 'M' && b.metodo_entrega === 'M') return 1;
+            return 0;
+        });
+
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         
@@ -42,8 +48,8 @@ export default function VerPedidos({ pedidos }) {
         doc.setTextColor(0, 0, 0); 
         doc.text(`Informe de Pedidos - ${formatearFechaCorta(fechaSeleccionada)}`, 14, 15);
         
-        if (pedidosFiltrados.length > 0 && pedidosFiltrados[0].nombre_plato) {
-            const platoTexto = `PLATO: ${pedidosFiltrados[0].nombre_plato.toUpperCase()}`;
+        if (pedidosOrdenados.length > 0 && pedidosOrdenados[0].nombre_plato) {
+            const platoTexto = `PLATO: ${pedidosOrdenados[0].nombre_plato.toUpperCase()}`;
             doc.setTextColor(255, 107, 0); // Naranja corporativo
             const textWidth = doc.getTextWidth(platoTexto);
             doc.text(platoTexto, pageWidth - textWidth - 14, 15);
@@ -53,7 +59,7 @@ export default function VerPedidos({ pedidos }) {
 
         autoTable(doc, {
             head: [columnasPDF],
-            body: pedidosFiltrados.map((p, index) => [
+            body: pedidosOrdenados.map((p, index) => [
                 index + 1,
                 p.nombre_cliente,
                 p.no_platos,
@@ -83,7 +89,7 @@ export default function VerPedidos({ pedidos }) {
             // --- DIBUJO DE CHECKS
             didDrawCell: (data) => {
                 const indexOriginal = data.row.index;
-                if (data.column.index === 3 && data.cell.section === 'body' && pedidosFiltrados[indexOriginal]?.qr) {
+                if (data.column.index === 3 && data.cell.section === 'body' && pedidosOrdenados[indexOriginal]?.qr) {
                     const x = data.cell.x + 5;
                     const y = data.cell.y + 5;
                     
@@ -170,12 +176,14 @@ export default function VerPedidos({ pedidos }) {
                         />
                         {busquedaCliente && (
                             <button 
+                                type="button" //flag
                                 onClick={() => setBusquedaCliente("")}
                                 className="absolute right-4 inset-y-0 text-xs opacity-50 hover:opacity-100"
                             >✕</button>
                         )}
                     </div>
                     <button 
+                        type="button" //flag
                         onClick={refrescarDatos}
                         className="bg-[#1a1a1a] text-[#96be8c] text-[12px] font-black py-2.5 px-6 rounded-xl border border-[#96be8c]/30 active:scale-95 transition-all uppercase"
                     >
@@ -228,6 +236,7 @@ export default function VerPedidos({ pedidos }) {
                 <div className="flex justify-end mt-4">
                     
                     <button 
+                        type="button"  //flag
                         onClick={descargarPDF}
                         disabled={pedidosFiltrados.length === 0}
                         className="bg-black text-white text-[12px] font-black py-2.5 px-6 rounded-xl shadow-2xl border border-white/10 active:scale-95 transition-all uppercase disabled:opacity-20 disabled:pointer-events-none hover:bg-white hover:text-black"
