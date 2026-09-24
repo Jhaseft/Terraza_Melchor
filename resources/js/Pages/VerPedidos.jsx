@@ -33,11 +33,11 @@ export default function VerPedidos({ pedidos }) {
     };
     
     const descargarPDF = () => {
-        const pedidosOrdenados = [...pedidosFiltrados].sort((a, b) => {
-            if (a.metodo_entrega === 'M' && b.metodo_entrega !== 'M') return -1;
-            if (a.metodo_entrega !== 'M' && b.metodo_entrega === 'M') return 1;
-            return 0;
-        });
+        // Primero las motos (M) y luego los recojos (R)
+        const ordenEntrega = (metodo) => (metodo === 'M' ? 0 : 1);
+        const pedidosOrdenados = [...pedidosFiltrados].sort(
+            (a, b) => ordenEntrega(a.metodo_entrega) - ordenEntrega(b.metodo_entrega)
+        );
 
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
