@@ -182,12 +182,20 @@ export default function VerPedidos({ pedidos }) {
                             >✕</button>
                         )}
                     </div>
-                    <button 
+                    <button
                         type="button" //flag
                         onClick={refrescarDatos}
                         className="bg-[#1a1a1a] text-[#96be8c] text-[12px] font-black py-2.5 px-6 rounded-xl border border-[#96be8c]/30 active:scale-95 transition-all uppercase"
                     >
                         Actualizar Lista
+                    </button>
+                    <button
+                        type="button"  //flag
+                        onClick={descargarPDF}
+                        disabled={pedidosFiltrados.length === 0}
+                        className="bg-black text-white text-[12px] font-black py-2.5 px-6 rounded-xl shadow-2xl border border-white/10 active:scale-95 transition-all uppercase disabled:opacity-20 disabled:pointer-events-none hover:bg-white hover:text-black"
+                    >
+                        PDF
                     </button>
                 </div>
 
@@ -232,17 +240,6 @@ export default function VerPedidos({ pedidos }) {
                             </tbody>
                         </table>
                     </div>
-                </div>   
-                <div className="flex justify-end mt-4">
-                    
-                    <button 
-                        type="button"  //flag
-                        onClick={descargarPDF}
-                        disabled={pedidosFiltrados.length === 0}
-                        className="bg-black text-white text-[12px] font-black py-2.5 px-6 rounded-xl shadow-2xl border border-white/10 active:scale-95 transition-all uppercase disabled:opacity-20 disabled:pointer-events-none hover:bg-white hover:text-black"
-                    >
-                        PDF
-                    </button>
                 </div>
             </motion.div>
         </div>
