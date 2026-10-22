@@ -41,5 +41,10 @@ return [
     'redirect' => env('GOOGLE_REDIRECT_URL'),
 ],
 
+    // Token compartido con el ecommerce para recibir los pedidos web en
+    // /api/integrations/orders (header X-Webhook-Token). Mismo valor en ambos .env.
+    'ecommerce' => [
+        'token' => env('GESTIONADOR_TOKEN'),
+    ],
 
 ];
