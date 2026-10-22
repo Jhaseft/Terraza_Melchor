@@ -65,8 +65,34 @@ class OrderController extends Controller
     }
 
     
-    //Listar todas las órdenes  
-    public function index() 
+    //editar un pedido existente (edición inline desde "Ver Pedidos")
+    public function update(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'fecha'          => 'required|date',
+            'nombre_plato'   => 'required|string|max:255',
+            'nombre_cliente' => 'required|string|max:255',
+            'no_platos'      => 'required|integer|min:1',
+            'qr'             => 'required|boolean',
+            'metodo_entrega' => 'required|string|max:5',
+            'observaciones'  => 'nullable|string|max:1000',
+        ]);
+
+        $order->update([
+            'fecha'          => $validated['fecha'],
+            'nombre_plato'   => strtoupper($validated['nombre_plato']),
+            'nombre_cliente' => strtoupper($validated['nombre_cliente']),
+            'no_platos'      => $validated['no_platos'],
+            'qr'             => $validated['qr'],
+            'metodo_entrega' => $validated['metodo_entrega'],
+            'observaciones'  => $validated['observaciones'],
+        ]);
+
+        return back();
+    }
+
+    //Listar todas las órdenes
+    public function index()
     {
         return Inertia::render('VerPedidos', [
             'pedidos' => Order::select(

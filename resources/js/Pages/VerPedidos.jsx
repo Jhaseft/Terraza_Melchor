@@ -17,8 +17,42 @@ export default function VerPedidos({ pedidos }) {
     
     const [busquedaCliente, setBusquedaCliente] = useState("");
 
+    // Edición inline de una fila
+    const [editandoId, setEditandoId] = useState(null);
+    const [editData, setEditData] = useState({});
+    const [guardando, setGuardando] = useState(false);
+
+    const iniciarEdicion = (pedido) => {
+        setEditandoId(pedido.id);
+        setEditData({
+            fecha: pedido.fecha ? pedido.fecha.split('T')[0] : fechaSeleccionada,
+            nombre_cliente: pedido.nombre_cliente || '',
+            nombre_plato: pedido.nombre_plato || '',
+            no_platos: pedido.no_platos || 1,
+            qr: !!pedido.qr,
+            metodo_entrega: pedido.metodo_entrega === 'M' ? 'M' : 'R',
+            observaciones: pedido.observaciones || '',
+        });
+    };
+
+    const cancelarEdicion = () => {
+        setEditandoId(null);
+        setEditData({});
+    };
+
+    const setCampo = (campo, valor) => setEditData((prev) => ({ ...prev, [campo]: valor }));
+
+    const guardarEdicion = (id) => {
+        setGuardando(true);
+        router.put(route('orders.update', id), editData, {
+            preserveScroll: true,
+            onSuccess: () => cancelarEdicion(),
+            onFinish: () => setGuardando(false),
+        });
+    };
+
     // columnas
-    const columnas = ["N°", "Cliente", "Plato", "Cant.", "QR?", "Entrega", "Obs."];
+    const columnas = ["N°", "Cliente", "Plato", "Cant.", "QR?", "Entrega", "Obs.", "Acciones"];
     const pedidosFiltrados = useMemo(() => {
         return pedidosSeguros.filter(p => {
             const fechaLimpiaDB = p.fecha ? p.fecha.split('T')[0] : '';
@@ -215,19 +249,82 @@ export default function VerPedidos({ pedidos }) {
                             <tbody>
                                 {pedidosFiltrados.length > 0 ? (
                                     pedidosFiltrados.map((pedido, index) => (
-                                        <tr key={pedido.id} className="border-b border-white/5 text-[12px] hover:bg-white/5 transition-colors font-bold">
-                                            <td className="p-3 text-center border-r border-white/40">{index + 1}</td>
-                                            <td className="p-3 uppercase border-r border-white/40 min-w-[150px]">{pedido.nombre_cliente}</td>
-                                            <td className="p-3 uppercase border-r border-white/40 min-w-[200px]">{pedido.nombre_plato || '---'}</td>
-                                            <td className="p-3 text-center border-r border-white/40">{pedido.no_platos}</td>
-                                            <td className="p-3 text-center border-r border-white/40">{pedido.qr ? "SÍ" : "NO"}</td>
-                                            <td className="p-3 text-center border-r border-white/40">{pedido.metodo_entrega === 'M' ? "M" : "R"}</td>
-                                            <td className="p-3 min-w-[250px]">{pedido.observaciones || "---"}</td>
-                                        </tr>
+                                        editandoId === pedido.id ? (
+                                            <tr key={pedido.id} className="border-b border-white/5 text-[12px] bg-white/5 font-bold">
+                                                <td className="p-3 text-center border-r border-white/40">{index + 1}</td>
+                                                <td className="p-2 border-r border-white/40 min-w-[150px]">
+                                                    <input
+                                                        type="text"
+                                                        value={editData.nombre_cliente}
+                                                        onChange={(e) => setCampo('nombre_cliente', e.target.value.toUpperCase())}
+                                                        className="w-full bg-[#2c2c34] border border-white/10 rounded px-2 py-1 text-white text-[12px] uppercase focus:ring-1 focus:ring-[#ff6b00] outline-none"
+                                                    />
+                                                </td>
+                                                <td className="p-2 border-r border-white/40 min-w-[200px]">
+                                                    <input
+                                                        type="text"
+                                                        value={editData.nombre_plato}
+                                                        onChange={(e) => setCampo('nombre_plato', e.target.value.toUpperCase())}
+                                                        className="w-full bg-[#2c2c34] border border-white/10 rounded px-2 py-1 text-white text-[12px] uppercase focus:ring-1 focus:ring-[#ff6b00] outline-none"
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-center border-r border-white/40">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={editData.no_platos}
+                                                        onChange={(e) => setCampo('no_platos', e.target.value)}
+                                                        className="w-16 bg-[#2c2c34] border border-white/10 rounded px-2 py-1 text-white text-[12px] text-center focus:ring-1 focus:ring-[#ff6b00] outline-none"
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-center border-r border-white/40">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setCampo('qr', !editData.qr)}
+                                                        className={`px-3 py-1 rounded-full text-[10px] font-black border ${editData.qr ? 'bg-[#96be8c]/20 border-[#96be8c] text-[#96be8c]' : 'bg-[#4a4a55] border-transparent text-gray-400'}`}
+                                                    >
+                                                        {editData.qr ? 'SÍ' : 'NO'}
+                                                    </button>
+                                                </td>
+                                                <td className="p-2 text-center border-r border-white/40">
+                                                    <div className="flex gap-1 justify-center">
+                                                        <button type="button" onClick={() => setCampo('metodo_entrega', 'R')} className={`px-2 py-1 rounded text-[10px] font-black border ${editData.metodo_entrega === 'R' ? 'bg-[#96be8c]/20 border-[#96be8c] text-[#96be8c]' : 'bg-[#4a4a55] border-transparent text-gray-400'}`}>R</button>
+                                                        <button type="button" onClick={() => setCampo('metodo_entrega', 'M')} className={`px-2 py-1 rounded text-[10px] font-black border ${editData.metodo_entrega === 'M' ? 'bg-[#96be8c]/20 border-[#96be8c] text-[#96be8c]' : 'bg-[#4a4a55] border-transparent text-gray-400'}`}>M</button>
+                                                    </div>
+                                                </td>
+                                                <td className="p-2 border-r border-white/40 min-w-[250px]">
+                                                    <input
+                                                        type="text"
+                                                        value={editData.observaciones}
+                                                        onChange={(e) => setCampo('observaciones', e.target.value)}
+                                                        className="w-full bg-[#2c2c34] border border-white/10 rounded px-2 py-1 text-white text-[12px] focus:ring-1 focus:ring-[#ff6b00] outline-none"
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-center whitespace-nowrap">
+                                                    <div className="flex gap-1 justify-center">
+                                                        <button type="button" disabled={guardando} onClick={() => guardarEdicion(pedido.id)} className="px-3 py-1 rounded bg-[#96be8c] text-[#1a1a1a] text-[10px] font-black uppercase active:scale-95 disabled:opacity-50">{guardando ? '...' : 'Guardar'}</button>
+                                                        <button type="button" onClick={cancelarEdicion} className="px-3 py-1 rounded bg-[#4a4a55] text-white text-[10px] font-black uppercase active:scale-95">Cancelar</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            <tr key={pedido.id} className="border-b border-white/5 text-[12px] hover:bg-white/5 transition-colors font-bold">
+                                                <td className="p-3 text-center border-r border-white/40">{index + 1}</td>
+                                                <td className="p-3 uppercase border-r border-white/40 min-w-[150px]">{pedido.nombre_cliente}</td>
+                                                <td className="p-3 uppercase border-r border-white/40 min-w-[200px]">{pedido.nombre_plato || '---'}</td>
+                                                <td className="p-3 text-center border-r border-white/40">{pedido.no_platos}</td>
+                                                <td className="p-3 text-center border-r border-white/40">{pedido.qr ? "SÍ" : "NO"}</td>
+                                                <td className="p-3 text-center border-r border-white/40">{pedido.metodo_entrega === 'M' ? "M" : "R"}</td>
+                                                <td className="p-3 border-r border-white/40 min-w-[250px]">{pedido.observaciones || "---"}</td>
+                                                <td className="p-3 text-center">
+                                                    <button type="button" onClick={() => iniciarEdicion(pedido)} className="px-3 py-1 rounded-lg bg-[#1a1a1a] border border-white/10 text-[#96be8c] text-[10px] font-black uppercase hover:bg-white/5 active:scale-95">Editar</button>
+                                                </td>
+                                            </tr>
+                                        )
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} className="p-32 text-center">
+                                        <td colSpan={8} className="p-32 text-center">
                                             <div className="flex flex-col items-center justify-center gap-2">
                                                 <p className="text-[11px] text-gray-500 uppercase tracking-widest italic leading-relaxed">
                                                     No hay registros para el <br /> 

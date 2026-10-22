@@ -35,6 +35,9 @@ Route::get('/registrar-pedido', [OrderController::class, 'create'])->name('pedid
 //registar un pedido
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 
+//editar un pedido existente (desde "Ver Pedidos")
+Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+
 //desde el home ir para platosXpedidos
 Route::get('/platos-pedidos', [OrderController::class, 'ingresos'])->name('ingresos.index');
 
